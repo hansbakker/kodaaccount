@@ -1,9 +1,9 @@
 #!/bin/zsh
 
 # KodaAccount Deployment & Update Script for Mac
-# Usage: ./deploy.sh [github_url]
+# Usage: ./deploy.sh 
 
-REPO_URL=$1
+REPO_URL="https://github.com/hansbakker/KodaAccount.git"
 TARGET_DIR="KodaAccount"
 
 echo "🚀 Starting KodaAccount Deployment/Update..."
