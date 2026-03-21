@@ -27,7 +27,7 @@ if [ -d "$TARGET_DIR" ]; then
     git pull
 else
     if [ -z "$REPO_URL" ]; then
-        echo "❌ Directory $TARGET_DIR not found. Please provide the GitHub URL: ./deploy.sh https://github.com/user/KodaAccount.git"
+        echo "❌ Directory $TARGET_DIR not found. Please provide the GitHub URL: ./deploy.sh https://github.com/hansbakker/KodaAccount.git"
         exit 1
     fi
     echo "Cloning new repository..."

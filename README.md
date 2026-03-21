@@ -37,7 +37,7 @@
 If you are on a Mac, you can use the included deployment script to set up everything automatically:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/KodaAccount.git
+git clone https://github.com/hansbakker/KodaAccount.git
 cd KodaAccount
 chmod +x deploy.sh
 ./deploy.sh
@@ -49,7 +49,7 @@ chmod +x deploy.sh
 
 1.  **Clone the repository**:
     ```bash
-    git clone https://github.com/YOUR_USERNAME/KodaAccount.git
+    git clone https://github.com/hansbakker/KodaAccount.git
     cd KodaAccount
     ```
 
