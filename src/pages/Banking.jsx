@@ -215,7 +215,7 @@ const Banking = () => {
                             {/* Invoices */}
                             <div className="card" style={{ marginBottom: 0, maxHeight: '300px', overflowY: 'auto' }}>
                               <h5 style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <ArrowDownLeft size={16} color="var(--success)" /> Unpaid Invoices
+                                <ArrowDownLeft size={16} color="var(--success)" /> Posted Invoices
                               </h5>
                               {filteredInvoices.map(inv => (
                                 <div key={inv.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px', borderBottom: '1px solid var(--border-color)', cursor: 'pointer' }} onClick={() => handleMatch(tx.id, { type: 'invoice', id: inv.id })}>
@@ -228,7 +228,7 @@ const Banking = () => {
                             {/* Bills */}
                             <div className="card" style={{ marginBottom: 0, maxHeight: '300px', overflowY: 'auto' }}>
                               <h5 style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <ArrowUpRight size={16} color="var(--danger)" /> Unpaid Bills
+                                <ArrowUpRight size={16} color="var(--danger)" /> Posted Bills
                               </h5>
                               {filteredBills.map(bill => (
                                 <div key={bill.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px', borderBottom: '1px solid var(--border-color)', cursor: 'pointer' }} onClick={() => handleMatch(tx.id, { type: 'bill', id: bill.id })}>

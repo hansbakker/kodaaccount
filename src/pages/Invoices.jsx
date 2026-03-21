@@ -34,11 +34,29 @@ const Invoices = () => {
   ]);
 
   const [customerForm, setCustomerForm] = useState({ name: '', email: '', vatNumber: '' });
+  const [activeAccount, setActiveAccount] = useState(null);
 
   const handleLineChange = (index, field, value) => {
     const newLines = [...lines];
     newLines[index][field] = value;
     setLines(newLines);
+  };
+
+  const handleAddLine = () => {
+    const defaultTariff = tariffs.find(t => t.isDefault) || tariffs[0];
+    setLines([...lines, { 
+      description: '', 
+      quantity: 1, 
+      unitPrice: 0, 
+      accountId: '', 
+      vatTariffId: defaultTariff ? defaultTariff.id.toString() : '' 
+    }]);
+  };
+
+  const handleRemoveLine = (index) => {
+    if (lines.length > 1) {
+      setLines(lines.filter((_, i) => i !== index));
+    }
   };
 
   // VAT Initialization Fix
@@ -186,7 +204,7 @@ const Invoices = () => {
                       onChange={e => setFilters({ ...filters, status: e.target.value })}
                     >
                       <option value="">All</option>
-                      <option value="unpaid">Unpaid</option>
+                      <option value="posted">Posted</option>
                       <option value="paid">Paid</option>
                     </select>
                   </div>
@@ -280,10 +298,21 @@ const Invoices = () => {
                         </select>
                       </td>
                       <td style={{ textAlign: 'right', fontWeight: 600 }}>€{((line.quantity * line.unitPrice) * (1 + (tariffs.find(t => t.id === parseInt(line.vatTariffId))?.rate || 0))).toFixed(2)}</td>
+                      <td style={{ textAlign: 'center' }}>
+                        {lines.length > 1 && (
+                          <button type="button" onClick={() => handleRemoveLine(index)} style={{ color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer' }}>
+                            <X size={16} />
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+
+              <button type="button" className="btn btn-outline" style={{ marginBottom: 'var(--space-6)' }} onClick={handleAddLine}>
+                <Plus size={16} /> Add Line
+              </button>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '40px', padding: 'var(--space-4) 0', borderTop: '1px solid var(--border-color)' }}>
                 <div>
