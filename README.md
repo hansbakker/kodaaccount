@@ -1,16 +1,81 @@
-# React + Vite
+# KodaAccount 🚀
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**KodaAccount** is a modern, premium, and lightweight accounting application designed specifically for small businesses. It offers a comprehensive suite of financial tools while keeping all your sensitive data securely in your browser.
 
-Currently, two official plugins are available:
+![KodaAccount Dashboard](file:///Users/hansbakker/.gemini/antigravity/brain/0ae15ba4-7bab-4e09-a39b-839938f750e4/koda_account_walkthrough_1774041271279.webp)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## ✨ Key Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **General Ledger**: Automated double-entry bookkeeping with real-time balancing.
+- **Accounts Receivable (AR)**: Professional invoice creation and customer tracking.
+- **Accounts Payable (AP)**: Vendor management and bill recording.
+- **Banking Ledger**: Manual statement entry and intelligent transaction matching/reconciliation.
+- **VAT Management**: Support for multiple tariffs (21%, 9%, etc.) with automated VAT reporting.
+- **Financial Reports**: 
+  - 📊 Balance Sheet
+  - 📈 Profit & Loss
+  - 🧾 VAT Return Summary
+- **Privacy First**: All data is stored locally in your browser via **IndexedDB**.
+- **Data Portability**: Full JSON backup export and import.
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 🛠️ Tech Stack
+
+- **Framework**: [React](https://reactjs.org/) + [Vite](https://vitejs.dev/)
+- **Database**: [Dexie.js](https://dexie.org/) (IndexedDB Wrapper)
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **Charts**: [Chart.js](https://www.chartjs.org/)
+- **PDF Export**: [jsPDF](https://github.com/parallax/jsPDF)
+
+---
+
+## 🚀 Quick Start (Mac Only)
+
+If you are on a Mac, you can use the included deployment script to set up everything automatically:
+
+```bash
+git clone https://github.com/YOUR_USERNAME/KodaAccount.git
+cd KodaAccount
+chmod +x deploy.sh
+./deploy.sh
+```
+
+---
+
+## 🏗️ Manual Installation
+
+1.  **Clone the repository**:
+    ```bash
+    git clone https://github.com/YOUR_USERNAME/KodaAccount.git
+    cd KodaAccount
+    ```
+
+2.  **Install dependencies**:
+    ```bash
+    npm install
+    ```
+
+3.  **Run the development server**:
+    ```bash
+    npm run dev
+    ```
+
+4.  **Build for production**:
+    ```bash
+    npm run build
+    ```
+
+---
+
+## 🛡️ Privacy & Security
+
+KodaAccount is a **serverless** application. No financial data ever leaves your computer. Your database is stored locally in your browser's IndexedDB. We recommend using the **Export Data (JSON)** feature in the Settings page regularly to keep local backups of your records.
+
+---
+
+## 📄 License
+
+This project is open-source and available under the MIT License.
