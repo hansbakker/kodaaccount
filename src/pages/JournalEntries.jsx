@@ -117,8 +117,8 @@ const JournalEntries = () => {
 
       {/* New Entry Modal */}
       {isModalOpen && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-          <div className="card" style={{ width: '800px', maxHeight: '90vh', overflowY: 'auto' }}>
+        <div className="modal-overlay">
+          <div className="modal-card" style={{ maxWidth: '900px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-6)' }}>
               <h3>New Journal Entry</h3>
               <button onClick={() => setIsModalOpen(false)}><X /></button>
@@ -210,8 +210,8 @@ const JournalEntries = () => {
 
       {/* View Entry Modal */}
       {viewingEntry && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-          <div className="card" style={{ width: '600px' }}>
+        <div className="modal-overlay">
+          <div className="modal-card" style={{ maxWidth: '700px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-6)' }}>
               <h3>Journal Entry: {viewingEntry.reference || `JE-${viewingEntry.id}`}</h3>
               <button onClick={() => setViewingEntry(null)}><X /></button>

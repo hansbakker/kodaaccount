@@ -124,8 +124,8 @@ const Bills = () => {
 
       {/* Bill Modal */}
       {isModalOpen && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-          <div className="card" style={{ width: '900px', maxHeight: '90vh', overflowY: 'auto' }}>
+        <div className="modal-overlay">
+          <div className="modal-card" style={{ maxWidth: '1000px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-6)' }}>
               <h3>Add Vendor Bill</h3>
               <button onClick={() => setIsModalOpen(false)}><X /></button>
@@ -214,8 +214,8 @@ const Bills = () => {
 
       {/* Vendor Modal */}
       {isVendorModalOpen && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-          <div className="card" style={{ width: '400px' }}>
+        <div className="modal-overlay">
+          <div className="modal-card" style={{ maxWidth: '450px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-6)' }}>
               <h3>Vendors</h3>
               <button onClick={() => setIsVendorModalOpen(false)}><X /></button>
