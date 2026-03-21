@@ -73,7 +73,8 @@ const JournalEntries = () => {
   };
 
   return (
-    <div className="animate-fade-in">
+    <>
+      <div className="animate-fade-in">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-6)' }}>
         <div>
           <h1>Journal Entries</h1>
@@ -115,6 +116,7 @@ const JournalEntries = () => {
         </table>
       </div>
 
+      </div>
       {/* New Entry Modal */}
       {isModalOpen && (
         <div className="modal-overlay">
@@ -240,7 +242,7 @@ const JournalEntries = () => {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 

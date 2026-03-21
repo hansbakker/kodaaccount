@@ -45,7 +45,8 @@ const Banking = () => {
   const filteredGL = accounts.filter(acc => acc.name.toLowerCase().includes(matchFilter.toLowerCase()) || acc.code.includes(matchFilter));
 
   return (
-    <div className="animate-fade-in">
+    <>
+      <div className="animate-fade-in">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-8)' }}>
         <div>
           <h1>Banking Ledger</h1>
@@ -185,6 +186,7 @@ const Banking = () => {
         </table>
       </div>
 
+      </div>
       {/* Add Modal */}
       {isAddModalOpen && (
         <div className="modal-overlay">
@@ -211,7 +213,7 @@ const Banking = () => {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 

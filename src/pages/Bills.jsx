@@ -77,7 +77,8 @@ const Bills = () => {
   };
 
   return (
-    <div className="animate-fade-in">
+    <>
+      <div className="animate-fade-in">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-6)' }}>
         <div>
           <h1>Bills (AP)</h1>
@@ -95,33 +96,7 @@ const Bills = () => {
         </div>
       </div>
 
-      <div className="card">
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ textAlign: 'left', borderBottom: '2px solid var(--border-color)' }}>
-              <th style={{ padding: 'var(--space-3)' }}>Bill #</th>
-              <th style={{ padding: 'var(--space-3)' }}>Vendor</th>
-              <th style={{ padding: 'var(--space-3)' }}>Date</th>
-              <th style={{ padding: 'var(--space-3)', textAlign: 'right' }}>Total</th>
-              <th style={{ padding: 'var(--space-3)', textAlign: 'right' }}>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {bills.map(bill => (
-              <tr key={bill.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                <td style={{ padding: 'var(--space-3)', fontWeight: 600 }}>{bill.number}</td>
-                <td style={{ padding: 'var(--space-3)' }}>{vendors.find(v => v.id === bill.contactId)?.name}</td>
-                <td style={{ padding: 'var(--space-3)' }}>{format(new Date(bill.date), 'dd-MM-yyyy')}</td>
-                <td style={{ padding: 'var(--space-3)', textAlign: 'right', fontWeight: 600 }}>€{bill.total.toFixed(2)}</td>
-                <td style={{ padding: 'var(--space-3)', textAlign: 'right' }}>
-                  <span className="badge badge-success">Posted</span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
       </div>
-
       {/* Bill Modal */}
       {isModalOpen && (
         <div className="modal-overlay">
@@ -239,7 +214,7 @@ const Bills = () => {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 
