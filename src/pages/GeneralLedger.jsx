@@ -1,13 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useGeneralLedger } from '../hooks/useJournalEntries';
 import { useAccounts } from '../hooks/useAccounts';
-import { format } from 'date-fns';
-import { FileText, Search, ArrowRightLeft } from 'lucide-react';
+import { format, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
+import { FileText, Search, ArrowRightLeft, X } from 'lucide-react';
+import DateRangePicker from '../components/shared/DateRangePicker';
 
 const GeneralLedger = () => {
   const { accounts } = useAccounts();
   const [selectedAccountId, setSelectedAccountId] = useState('');
+  
+  // List Filtering State
+  const [filters, setFilters] = useState({
+    dateRange: { start: startOfMonth(new Date()), end: endOfMonth(new Date()) },
+    reference: '',
+    description: '',
+    accountCode: ''
+  });
+
   const { ledgerLines, loading } = useGeneralLedger(selectedAccountId);
+
+  // Filtered Ledger Lines
+  const filteredLedger = useMemo(() => {
+    return (ledgerLines || []).filter(line => {
+      const lineDate = new Date(line.date);
+      const inDateRange = isWithinInterval(lineDate, { 
+        start: filters.dateRange.start, 
+        end: filters.dateRange.end 
+      });
+      
+      const matchRef = (line.reference || '').toLowerCase().includes(filters.reference.toLowerCase());
+      const matchDesc = (line.description || '').toLowerCase().includes(filters.description.toLowerCase());
+      const matchAccount = !selectedAccountId ? (line.accountCode || '').toLowerCase().includes(filters.accountCode.toLowerCase()) : true;
+      
+      return inDateRange && matchRef && matchDesc && matchAccount;
+    });
+  }, [ledgerLines, filters, selectedAccountId]);
 
   let runningBalance = 0;
 
@@ -35,49 +62,95 @@ const GeneralLedger = () => {
         <button className="btn btn-outline" onClick={() => setSelectedAccountId('')}>Clear Filter</button>
       </div>
 
-      <div className="card">
+      <DateRangePicker 
+        value={filters.dateRange} 
+        onChange={(range) => setFilters({ ...filters, dateRange: range })} 
+      />
+
+      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ textAlign: 'left', borderBottom: '2px solid var(--border-color)' }}>
-              <th style={{ padding: 'var(--space-3)' }}>Date</th>
-              <th style={{ padding: 'var(--space-3)' }}>Ref</th>
-              <th style={{ padding: 'var(--space-3)' }}>Source</th>
-              {!selectedAccountId && <th style={{ padding: 'var(--space-3)' }}>Account</th>}
-              <th style={{ padding: 'var(--space-3)' }}>Description</th>
-              <th style={{ padding: 'var(--space-3)', textAlign: 'right' }}>Debit</th>
-              <th style={{ padding: 'var(--space-3)', textAlign: 'right' }}>Credit</th>
-              {selectedAccountId && <th style={{ padding: 'var(--space-3)', textAlign: 'right' }}>Balance</th>}
+            <tr style={{ textAlign: 'left', backgroundColor: 'var(--bg-main)', borderBottom: '2px solid var(--border-color)' }}>
+              <th style={{ padding: '16px' }}>Date</th>
+              <th style={{ padding: '16px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <span>Ref</span>
+                  <div style={{ position: 'relative' }}>
+                    <Search size={12} style={{ position: 'absolute', left: '8px', top: '10px', color: 'var(--text-muted)' }} />
+                    <input 
+                      className="input" 
+                      style={{ padding: '4px 8px 4px 24px', fontSize: '0.75rem' }} 
+                      placeholder="Filter..."
+                      value={filters.reference}
+                      onChange={e => setFilters({ ...filters, reference: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </th>
+              <th style={{ padding: '16px' }}>Source</th>
+              {!selectedAccountId && (
+                <th style={{ padding: '16px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <span>Account</span>
+                    <input 
+                      className="input" 
+                      style={{ padding: '4px 8px', fontSize: '0.75rem' }} 
+                      placeholder="Code..."
+                      value={filters.accountCode}
+                      onChange={e => setFilters({ ...filters, accountCode: e.target.value })}
+                    />
+                  </div>
+                </th>
+              )}
+              <th style={{ padding: '16px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <span>Description</span>
+                  <div style={{ position: 'relative' }}>
+                    <Search size={12} style={{ position: 'absolute', left: '8px', top: '10px', color: 'var(--text-muted)' }} />
+                    <input 
+                      className="input" 
+                      style={{ padding: '4px 8px 4px 24px', fontSize: '0.75rem' }} 
+                      placeholder="Search..."
+                      value={filters.description}
+                      onChange={e => setFilters({ ...filters, description: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </th>
+              <th style={{ padding: '16px', textAlign: 'right' }}>Debit</th>
+              <th style={{ padding: '16px', textAlign: 'right' }}>Credit</th>
+              {selectedAccountId && <th style={{ padding: '16px', textAlign: 'right' }}>Balance</th>}
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan="7" style={{ textAlign: 'center', padding: 'var(--space-8)' }}>Loading ledger...</td></tr>
-            ) : ledgerLines.length === 0 ? (
-              <tr><td colSpan="7" style={{ textAlign: 'center', padding: 'var(--space-8)' }}>No transactions found.</td></tr>
+              <tr><td colSpan={selectedAccountId ? 7 : 6} style={{ textAlign: 'center', padding: 'var(--space-8)' }}>Loading ledger...</td></tr>
+            ) : filteredLedger.length === 0 ? (
+              <tr><td colSpan={selectedAccountId ? 7 : 6} style={{ textAlign: 'center', padding: 'var(--space-8)' }} className="text-muted">No transactions match your filters.</td></tr>
             ) : (
-              ledgerLines.map((line, i) => {
+              filteredLedger.map((line, i) => {
                 runningBalance += (line.debit - line.credit);
                 return (
                   <tr key={i} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                    <td style={{ padding: 'var(--space-3)', fontSize: '0.875rem' }}>{line.date ? format(new Date(line.date), 'dd-MM-yyyy') : ''}</td>
-                    <td style={{ padding: 'var(--space-3)', fontSize: '0.875rem' }}>{line.reference || '-'}</td>
-                    <td style={{ padding: 'var(--space-3)' }}>
+                    <td style={{ padding: '16px', fontSize: '0.875rem' }}>{line.date ? format(new Date(line.date), 'dd/MM/yyyy') : ''}</td>
+                    <td style={{ padding: '16px', fontSize: '0.875rem' }}>{line.reference || '-'}</td>
+                    <td style={{ padding: '16px' }}>
                       {line.sourceType?.startsWith('bank') ? (
                         <span className="badge badge-success" style={{ fontSize: '0.7rem', padding: '2px 6px' }}>Bank</span>
                       ) : (
                         <span className="badge badge-secondary" style={{ fontSize: '0.7rem', padding: '2px 6px' }}>Manual</span>
                       )}
                     </td>
-                    {!selectedAccountId && <td style={{ padding: 'var(--space-3)', fontSize: '0.875rem' }}>{line.accountCode}</td>}
-                    <td style={{ padding: 'var(--space-3)', fontSize: '0.875rem' }}>{line.description}</td>
-                    <td style={{ padding: 'var(--space-3)', textAlign: 'right', color: line.debit > 0 ? 'var(--success)' : 'inherit' }}>
+                    {!selectedAccountId && <td style={{ padding: '16px', fontSize: '0.875rem' }}>{line.accountCode}</td>}
+                    <td style={{ padding: '16px', fontSize: '0.875rem' }}>{line.description}</td>
+                    <td style={{ padding: '16px', textAlign: 'right', color: line.debit > 0 ? 'var(--success)' : 'inherit' }}>
                       {line.debit > 0 ? line.debit.toFixed(2) : ''}
                     </td>
-                    <td style={{ padding: 'var(--space-3)', textAlign: 'right', color: line.credit > 0 ? 'var(--danger)' : 'inherit' }}>
+                    <td style={{ padding: '16px', textAlign: 'right', color: line.credit > 0 ? 'var(--danger)' : 'inherit' }}>
                       {line.credit > 0 ? line.credit.toFixed(2) : ''}
                     </td>
                     {selectedAccountId && (
-                      <td style={{ padding: 'var(--space-3)', textAlign: 'right', fontWeight: 600 }}>
+                      <td style={{ padding: '16px', textAlign: 'right', fontWeight: 600 }}>
                         {runningBalance.toFixed(2)}
                       </td>
                     )}

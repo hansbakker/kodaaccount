@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useJournalEntries } from '../hooks/useJournalEntries';
 import { useAccounts } from '../hooks/useAccounts';
-import { Plus, Trash2, Save, X, Eye } from 'lucide-react';
-import { format } from 'date-fns';
+import { Plus, Trash2, Save, X, Eye, Search } from 'lucide-react';
+import { format, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
+import DateRangePicker from '../components/shared/DateRangePicker';
 
 const JournalEntries = () => {
   const { entries, addJournalEntry, deleteJournalEntry, getLinesForEntry } = useJournalEntries();
@@ -10,6 +11,13 @@ const JournalEntries = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewingEntry, setViewingEntry] = useState(null);
   const [viewLines, setViewLines] = useState([]);
+
+  // Filtering State
+  const [filters, setFilters] = useState({
+    dateRange: { start: startOfMonth(new Date()), end: endOfMonth(new Date()) },
+    reference: '',
+    description: ''
+  });
 
   const [formData, setFormData] = useState({
     date: format(new Date(), 'yyyy-MM-dd'),
@@ -48,6 +56,23 @@ const JournalEntries = () => {
 
   const isBalanced = Math.abs(totals.debit - totals.credit) < 0.001 && totals.debit > 0;
 
+  // Filtered Entries
+  const filteredEntries = useMemo(() => {
+    return entries.filter(entry => {
+      const entryDate = new Date(entry.date);
+      const inDateRange = isWithinInterval(entryDate, { 
+        start: filters.dateRange.start, 
+        end: filters.dateRange.end 
+      });
+      
+      const referenceToMatch = entry.reference || `JE-${entry.id}`;
+      const matchRef = referenceToMatch.toLowerCase().includes(filters.reference.toLowerCase());
+      const matchDesc = entry.description.toLowerCase().includes(filters.description.toLowerCase());
+      
+      return inDateRange && matchRef && matchDesc;
+    });
+  }, [entries, filters]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!isBalanced) return;
@@ -75,47 +100,89 @@ const JournalEntries = () => {
   return (
     <>
       <div className="animate-fade-in">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-6)' }}>
-        <div>
-          <h1>Journal Entries</h1>
-          <p className="text-muted">Directly record business transactions</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-6)' }}>
+          <div>
+            <h1>Journal Entries</h1>
+            <p className="text-muted">Directly record business transactions</p>
+          </div>
+          <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>
+            <Plus size={20} />
+            New Entry
+          </button>
         </div>
-        <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>
-          <Plus size={20} />
-          New Entry
-        </button>
-      </div>
 
-      <div className="card">
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ textAlign: 'left', borderBottom: '2px solid var(--border-color)' }}>
-              <th style={{ padding: 'var(--space-3)' }}>Date</th>
-              <th style={{ padding: 'var(--space-3)' }}>Reference</th>
-              <th style={{ padding: 'var(--space-3)' }}>Description</th>
-              <th style={{ padding: 'var(--space-3)', textAlign: 'right' }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {entries.map(entry => (
-              <tr key={entry.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                <td style={{ padding: 'var(--space-3)' }}>{format(new Date(entry.date), 'dd-MM-yyyy')}</td>
-                <td style={{ padding: 'var(--space-3)', fontWeight: 600 }}>{entry.reference || `JE-${entry.id}`}</td>
-                <td style={{ padding: 'var(--space-3)' }}>{entry.description}</td>
-                <td style={{ padding: 'var(--space-3)', textAlign: 'right' }}>
-                  <button className="btn btn-outline" style={{ padding: '4px 8px' }} onClick={() => handleView(entry)}>
-                    <Eye size={16} />
-                  </button>
-                  <button className="btn btn-outline" style={{ padding: '4px 8px', marginLeft: '8px', color: 'var(--danger)' }} onClick={() => deleteJournalEntry(entry.id)}>
-                    <Trash2 size={16} />
-                  </button>
-                </td>
+        <DateRangePicker 
+          value={filters.dateRange} 
+          onChange={(range) => setFilters({ ...filters, dateRange: range })} 
+        />
+
+        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ textAlign: 'left', backgroundColor: 'var(--bg-main)', borderBottom: '2px solid var(--border-color)' }}>
+                <th style={{ padding: '16px' }}>Date</th>
+                <th style={{ padding: '16px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <span>Reference</span>
+                    <div style={{ position: 'relative' }}>
+                      <Search size={12} style={{ position: 'absolute', left: '8px', top: '10px', color: 'var(--text-muted)' }} />
+                      <input 
+                        className="input" 
+                        style={{ padding: '4px 8px 4px 24px', fontSize: '0.75rem' }} 
+                        placeholder="Filter ref..."
+                        value={filters.reference}
+                        onChange={e => setFilters({ ...filters, reference: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                </th>
+                <th style={{ padding: '16px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <span>Description</span>
+                    <div style={{ position: 'relative' }}>
+                      <Search size={12} style={{ position: 'absolute', left: '8px', top: '10px', color: 'var(--text-muted)' }} />
+                      <input 
+                        className="input" 
+                        style={{ padding: '4px 8px 4px 24px', fontSize: '0.75rem' }} 
+                        placeholder="Search memo..."
+                        value={filters.description}
+                        onChange={e => setFilters({ ...filters, description: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                </th>
+                <th style={{ padding: '16px', textAlign: 'right' }}>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
+            </thead>
+            <tbody>
+              {filteredEntries.length === 0 ? (
+                <tr>
+                  <td colSpan="4" style={{ padding: '40px', textAlign: 'center' }} className="text-muted">
+                    No journal entries match your filters.
+                  </td>
+                </tr>
+              ) : (
+                filteredEntries.map(entry => (
+                  <tr key={entry.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                    <td style={{ padding: '16px' }}>{format(new Date(entry.date), 'dd/MM/yyyy')}</td>
+                    <td style={{ padding: '16px', fontWeight: 600 }}>{entry.reference || `JE-${entry.id}`}</td>
+                    <td style={{ padding: '16px' }}>{entry.description}</td>
+                    <td style={{ padding: '16px', textAlign: 'right' }}>
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                        <button className="btn btn-outline" style={{ padding: '6px' }} onClick={() => handleView(entry)} title="View entry">
+                          <Eye size={16} />
+                        </button>
+                        <button className="btn btn-outline" style={{ padding: '6px', color: 'var(--danger)' }} onClick={() => deleteJournalEntry(entry.id)} title="Delete entry">
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
       {/* New Entry Modal */}
       {isModalOpen && (

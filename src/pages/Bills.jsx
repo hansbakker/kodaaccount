@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useBills } from '../hooks/useBills';
 import { useAccounts } from '../hooks/useAccounts';
 import { useVat, calculateVat } from '../hooks/useVat';
-import { Plus, Truck, FileText, X, Save } from 'lucide-react';
-import { format, addDays } from 'date-fns';
+import { Plus, Truck, FileText, X, Save, Search } from 'lucide-react';
+import { format, addDays, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
+import DateRangePicker from '../components/shared/DateRangePicker';
 
 const Bills = () => {
   const { bills, vendors, addBill, addVendor, getLinesForBill } = useBills();
@@ -13,6 +14,14 @@ const Bills = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isVendorModalOpen, setIsVendorModalOpen] = useState(false);
   
+  // Filtering State
+  const [filters, setFilters] = useState({
+    dateRange: { start: startOfMonth(new Date()), end: endOfMonth(new Date()) },
+    number: '',
+    vendor: '',
+    status: ''
+  });
+
   const [formData, setFormData] = useState({
     number: '',
     contactId: '',
@@ -65,6 +74,24 @@ const Bills = () => {
 
   const { subtotal, vatTotal, total, processedLines } = calculateTotals();
 
+  // Filtered Bills
+  const filteredBills = useMemo(() => {
+    return bills.filter(bill => {
+      const billDate = new Date(bill.date);
+      const inDateRange = isWithinInterval(billDate, { 
+        start: filters.dateRange.start, 
+        end: filters.dateRange.end 
+      });
+      
+      const matchNumber = bill.number.toLowerCase().includes(filters.number.toLowerCase());
+      const vendorName = vendors.find(v => v.id === bill.contactId)?.name || '';
+      const matchVendor = vendorName.toLowerCase().includes(filters.vendor.toLowerCase());
+      const matchStatus = filters.status === '' || bill.status === filters.status;
+      
+      return inDateRange && matchNumber && matchVendor && matchStatus;
+    });
+  }, [bills, filters, vendors]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.contactId || !formData.number || processedLines.some(l => !l.accountId)) return;
@@ -109,26 +136,73 @@ const Bills = () => {
           </div>
         </div>
 
+        <DateRangePicker 
+          value={filters.dateRange} 
+          onChange={(range) => setFilters({ ...filters, dateRange: range })} 
+        />
+
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ textAlign: 'left', backgroundColor: 'var(--bg-main)', borderBottom: '1px solid var(--border-color)' }}>
                 <th style={{ padding: '16px' }}>Date</th>
-                <th style={{ padding: '16px' }}>Number</th>
-                <th style={{ padding: '16px' }}>Vendor</th>
+                <th style={{ padding: '16px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <span>Number</span>
+                    <div style={{ position: 'relative' }}>
+                      <Search size={12} style={{ position: 'absolute', left: '8px', top: '10px', color: 'var(--text-muted)' }} />
+                      <input 
+                        className="input" 
+                        style={{ padding: '4px 8px 4px 24px', fontSize: '0.75rem' }} 
+                        placeholder="Search..."
+                        value={filters.number}
+                        onChange={e => setFilters({ ...filters, number: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                </th>
+                <th style={{ padding: '16px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <span>Vendor</span>
+                    <div style={{ position: 'relative' }}>
+                      <Search size={12} style={{ position: 'absolute', left: '8px', top: '10px', color: 'var(--text-muted)' }} />
+                      <input 
+                        className="input" 
+                        style={{ padding: '4px 8px 4px 24px', fontSize: '0.75rem' }} 
+                        placeholder="Filter vendor..."
+                        value={filters.vendor}
+                        onChange={e => setFilters({ ...filters, vendor: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                </th>
                 <th style={{ padding: '16px', textAlign: 'right' }}>Total</th>
-                <th style={{ padding: '16px', textAlign: 'center' }}>Status</th>
+                <th style={{ padding: '16px', textAlign: 'center' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
+                    <span>Status</span>
+                    <select 
+                      className="input" 
+                      style={{ padding: '4px', fontSize: '0.75rem', width: '100px' }}
+                      value={filters.status}
+                      onChange={e => setFilters({ ...filters, status: e.target.value })}
+                    >
+                      <option value="">All</option>
+                      <option value="unpaid">Unpaid</option>
+                      <option value="paid">Paid</option>
+                    </select>
+                  </div>
+                </th>
               </tr>
             </thead>
             <tbody>
-              {bills.length === 0 ? (
+              {filteredBills.length === 0 ? (
                 <tr>
                   <td colSpan="5" style={{ padding: '40px', textAlign: 'center' }} className="text-muted">
-                    No bills found. Add your first bill to get started.
+                    No bills match your filters.
                   </td>
                 </tr>
               ) : (
-                bills.map(bill => (
+                filteredBills.map(bill => (
                   <tr key={bill.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
                     <td style={{ padding: '16px' }}>{format(new Date(bill.date), 'dd/MM/yyyy')}</td>
                     <td style={{ padding: '16px', fontWeight: 600 }}>{bill.number}</td>

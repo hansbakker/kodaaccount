@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useInvoices } from '../hooks/useInvoices';
 import { useAccounts } from '../hooks/useAccounts';
 import { useVat, calculateVat } from '../hooks/useVat';
-import { Plus, Users, FileText, X, Save } from 'lucide-react';
-import { format, addDays } from 'date-fns';
+import { Plus, Users, FileText, X, Save, Search, Filter } from 'lucide-react';
+import { format, addDays, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
+import DateRangePicker from '../components/shared/DateRangePicker';
 
 const Invoices = () => {
   const { invoices, customers, addInvoice, addCustomer, getLinesForInvoice } = useInvoices();
@@ -13,6 +14,14 @@ const Invoices = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
   
+  // Filtering State
+  const [filters, setFilters] = useState({
+    dateRange: { start: startOfMonth(new Date()), end: endOfMonth(new Date()) },
+    number: '',
+    customer: '',
+    status: ''
+  });
+
   const [formData, setFormData] = useState({
     number: `INV-${new Date().getFullYear()}-${1001 + invoices.length}`,
     contactId: '',
@@ -65,6 +74,24 @@ const Invoices = () => {
 
   const { subtotal, vatTotal, total, processedLines } = calculateTotals();
 
+  // Filtered Invoices
+  const filteredInvoices = useMemo(() => {
+    return invoices.filter(inv => {
+      const invDate = new Date(inv.date);
+      const inDateRange = isWithinInterval(invDate, { 
+        start: filters.dateRange.start, 
+        end: filters.dateRange.end 
+      });
+      
+      const matchNumber = inv.number.toLowerCase().includes(filters.number.toLowerCase());
+      const customerName = customers.find(c => c.id === inv.contactId)?.name || '';
+      const matchCustomer = customerName.toLowerCase().includes(filters.customer.toLowerCase());
+      const matchStatus = filters.status === '' || inv.status === filters.status;
+      
+      return inDateRange && matchNumber && matchCustomer && matchStatus;
+    });
+  }, [invoices, filters, customers]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.contactId || processedLines.some(l => !l.accountId)) return;
@@ -108,26 +135,73 @@ const Invoices = () => {
           </div>
         </div>
 
+        <DateRangePicker 
+          value={filters.dateRange} 
+          onChange={(range) => setFilters({ ...filters, dateRange: range })} 
+        />
+
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ textAlign: 'left', backgroundColor: 'var(--bg-main)', borderBottom: '1px solid var(--border-color)' }}>
                 <th style={{ padding: '16px' }}>Date</th>
-                <th style={{ padding: '16px' }}>Number</th>
-                <th style={{ padding: '16px' }}>Customer</th>
+                <th style={{ padding: '16px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <span>Number</span>
+                    <div style={{ position: 'relative' }}>
+                      <Search size={12} style={{ position: 'absolute', left: '8px', top: '10px', color: 'var(--text-muted)' }} />
+                      <input 
+                        className="input" 
+                        style={{ padding: '4px 8px 4px 24px', fontSize: '0.75rem' }} 
+                        placeholder="Search..."
+                        value={filters.number}
+                        onChange={e => setFilters({ ...filters, number: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                </th>
+                <th style={{ padding: '16px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <span>Customer</span>
+                    <div style={{ position: 'relative' }}>
+                      <Search size={12} style={{ position: 'absolute', left: '8px', top: '10px', color: 'var(--text-muted)' }} />
+                      <input 
+                        className="input" 
+                        style={{ padding: '4px 8px 4px 24px', fontSize: '0.75rem' }} 
+                        placeholder="Filter customer..."
+                        value={filters.customer}
+                        onChange={e => setFilters({ ...filters, customer: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                </th>
                 <th style={{ padding: '16px', textAlign: 'right' }}>Total</th>
-                <th style={{ padding: '16px', textAlign: 'center' }}>Status</th>
+                <th style={{ padding: '16px', textAlign: 'center' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
+                    <span>Status</span>
+                    <select 
+                      className="input" 
+                      style={{ padding: '4px', fontSize: '0.75rem', width: '100px' }}
+                      value={filters.status}
+                      onChange={e => setFilters({ ...filters, status: e.target.value })}
+                    >
+                      <option value="">All</option>
+                      <option value="unpaid">Unpaid</option>
+                      <option value="paid">Paid</option>
+                    </select>
+                  </div>
+                </th>
               </tr>
             </thead>
             <tbody>
-              {invoices.length === 0 ? (
+              {filteredInvoices.length === 0 ? (
                 <tr>
                   <td colSpan="5" style={{ padding: '40px', textAlign: 'center' }} className="text-muted">
-                    No invoices found. Create your first invoice to get started.
+                    No invoices match your filters.
                   </td>
                 </tr>
               ) : (
-                invoices.map(invoice => (
+                filteredInvoices.map(invoice => (
                   <tr key={invoice.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
                     <td style={{ padding: '16px' }}>{format(new Date(invoice.date), 'dd/MM/yyyy')}</td>
                     <td style={{ padding: '16px', fontWeight: 600 }}>{invoice.number}</td>
