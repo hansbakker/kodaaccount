@@ -1,9 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useReports } from '../../hooks/useReports';
-import { format } from 'date-fns';
+import { format, startOfYear, endOfYear } from 'date-fns';
+import DateRangePicker from '../../components/shared/DateRangePicker';
 
 const BalanceSheet = () => {
-  const { reportData, loading } = useReports();
+  const [dateRange, setDateRange] = useState({
+    start: startOfYear(new Date()),
+    end: endOfYear(new Date())
+  });
+  const { reportData, loading } = useReports(dateRange);
 
   if (loading) return <div className="card">Loading Balance Sheet...</div>;
 
@@ -16,9 +21,11 @@ const BalanceSheet = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-6)' }}>
         <div>
           <h1>Balance Sheet</h1>
-          <p className="text-muted">As of {format(new Date(), 'dd MMMM yyyy')}</p>
+          <p className="text-muted">As of {format(dateRange.end, 'dd MMMM yyyy')}</p>
         </div>
       </div>
+
+      <DateRangePicker value={dateRange} onChange={setDateRange} />
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
         {/* Assets Side */}

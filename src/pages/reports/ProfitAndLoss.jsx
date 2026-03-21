@@ -1,9 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useReports } from '../../hooks/useReports';
-import { format } from 'date-fns';
+import { format, startOfYear, endOfYear } from 'date-fns';
+import DateRangePicker from '../../components/shared/DateRangePicker';
 
 const ProfitAndLoss = () => {
-  const { reportData, loading } = useReports();
+  const [dateRange, setDateRange] = useState({
+    start: startOfYear(new Date()),
+    end: endOfYear(new Date())
+  });
+  const { reportData, loading } = useReports(dateRange);
 
   if (loading) return <div className="card">Loading P&L...</div>;
 
@@ -14,9 +19,11 @@ const ProfitAndLoss = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-6)' }}>
         <div>
           <h1>Profit & Loss</h1>
-          <p className="text-muted">For current fiscal year</p>
+          <p className="text-muted">{format(dateRange.start, 'dd MMM yyyy')} - {format(dateRange.end, 'dd MMM yyyy')}</p>
         </div>
       </div>
+
+      <DateRangePicker value={dateRange} onChange={setDateRange} />
 
       <div className="card" style={{ maxWidth: '800px', margin: '0 auto' }}>
         <h3 style={{ borderBottom: '2px solid var(--border-color)', paddingBottom: '12px', marginBottom: '20px' }}>Revenue</h3>
