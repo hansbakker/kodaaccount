@@ -46,6 +46,17 @@
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
+[data-theme='dark'] {
+  --primary-light: #1e293b;
+  --bg-main: #020617;
+  --bg-card: #0f172a;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --border-color: #1e293b;
+  --sidebar-bg: #020617;
+  --secondary-light: #1e293b;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;

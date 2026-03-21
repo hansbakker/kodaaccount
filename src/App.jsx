@@ -11,7 +11,9 @@ import {
   LayoutDashboard,
   Wallet,
   ArrowRightLeft,
-  ChevronRight
+  ChevronRight,
+  Moon,
+  Sun
 } from 'lucide-react';
 import { seedDatabase } from './db/seed';
 import ChartOfAccounts from './pages/ChartOfAccounts';
@@ -28,7 +30,7 @@ import Dashboard from './pages/Dashboard';
 import Banking from './pages/Banking';
 
 // Custom Sidebar Component
-const Layout = () => {
+const Layout = ({ theme, toggleTheme }) => {
   return (
     <div className="app-container">
       <aside className="sidebar">
@@ -68,6 +70,14 @@ const Layout = () => {
         <header className="page-header">
           <div className="text-muted">Small Business Accounting</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <button 
+              className="btn btn-outline" 
+              style={{ padding: '8px', borderRadius: '50%' }}
+              onClick={toggleTheme}
+              title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+            >
+              {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+            </button>
             <div className="badge badge-success">Live Data</div>
           </div>
         </header>
@@ -101,14 +111,25 @@ const SidebarItem = ({ to, icon, label }) => (
 );
 
 function App() {
+  const [theme, setTheme] = React.useState(localStorage.getItem('theme') || 'light');
+
   useEffect(() => {
     seedDatabase().catch(console.error);
   }, []);
 
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+  };
+
   return (
     <HashRouter>
       <Routes>
-        <Route path="/" element={<Layout />}>
+        <Route path="/" element={<Layout theme={theme} toggleTheme={toggleTheme} />}>
           <Route index element={<Dashboard />} />
           <Route path="accounts" element={<ChartOfAccounts />} />
           <Route path="journal" element={<JournalEntries />} />

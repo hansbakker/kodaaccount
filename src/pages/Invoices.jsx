@@ -32,12 +32,25 @@ const Invoices = () => {
     setLines(newLines);
   };
 
+  // VAT Initialization Fix
+  React.useEffect(() => {
+    if (tariffs.length > 0 && lines[0].vatTariffId === '') {
+      const defaultTariff = tariffs.find(t => t.isDefault) || tariffs[0];
+      if (defaultTariff) {
+        const newLines = [...lines];
+        newLines[0].vatTariffId = defaultTariff.id.toString();
+        setLines(newLines);
+      }
+    }
+  }, [tariffs, isModalOpen]);
+
   const calculateTotals = () => {
     let subtotal = 0;
     let vatTotal = 0;
     
     const processedLines = lines.map(line => {
-      const tariff = tariffs.find(t => t.id === parseInt(line.vatTariffId));
+      const tariffId = parseInt(line.vatTariffId);
+      const tariff = tariffs.find(t => t.id === tariffId);
       const lineSubtotal = (parseFloat(line.quantity) || 0) * (parseFloat(line.unitPrice) || 0);
       const vat = calculateVat(lineSubtotal, tariff?.rate || 0);
       
