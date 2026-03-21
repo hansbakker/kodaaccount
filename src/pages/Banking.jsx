@@ -109,7 +109,10 @@ const Banking = () => {
                         {reconcilingId === tx.id ? 'Cancel' : 'Match'}
                       </button>
                     ) : (
-                      <span className="text-muted" style={{ fontSize: '0.875rem' }}>{tx.matchedType} #{tx.matchedId}</span>
+                      <div style={{ textAlign: 'right' }}>
+                        <span className="text-muted" style={{ display: 'block', fontSize: '0.75rem' }}>{tx.matchedType} #{tx.matchedId}</span>
+                        <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--primary)' }}>GL JE-{tx.journalEntryId}</span>
+                      </div>
                     )}
                   </td>
                 </tr>

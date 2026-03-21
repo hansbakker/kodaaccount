@@ -41,6 +41,7 @@ const GeneralLedger = () => {
             <tr style={{ textAlign: 'left', borderBottom: '2px solid var(--border-color)' }}>
               <th style={{ padding: 'var(--space-3)' }}>Date</th>
               <th style={{ padding: 'var(--space-3)' }}>Ref</th>
+              <th style={{ padding: 'var(--space-3)' }}>Source</th>
               {!selectedAccountId && <th style={{ padding: 'var(--space-3)' }}>Account</th>}
               <th style={{ padding: 'var(--space-3)' }}>Description</th>
               <th style={{ padding: 'var(--space-3)', textAlign: 'right' }}>Debit</th>
@@ -60,6 +61,13 @@ const GeneralLedger = () => {
                   <tr key={i} style={{ borderBottom: '1px solid var(--border-color)' }}>
                     <td style={{ padding: 'var(--space-3)', fontSize: '0.875rem' }}>{line.date ? format(new Date(line.date), 'dd-MM-yyyy') : ''}</td>
                     <td style={{ padding: 'var(--space-3)', fontSize: '0.875rem' }}>{line.reference || '-'}</td>
+                    <td style={{ padding: 'var(--space-3)' }}>
+                      {line.sourceType?.startsWith('bank') ? (
+                        <span className="badge badge-success" style={{ fontSize: '0.7rem', padding: '2px 6px' }}>Bank</span>
+                      ) : (
+                        <span className="badge badge-secondary" style={{ fontSize: '0.7rem', padding: '2px 6px' }}>Manual</span>
+                      )}
+                    </td>
                     {!selectedAccountId && <td style={{ padding: 'var(--space-3)', fontSize: '0.875rem' }}>{line.accountCode}</td>}
                     <td style={{ padding: 'var(--space-3)', fontSize: '0.875rem' }}>{line.description}</td>
                     <td style={{ padding: 'var(--space-3)', textAlign: 'right', color: line.debit > 0 ? 'var(--success)' : 'inherit' }}>

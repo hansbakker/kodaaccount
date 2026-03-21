@@ -2,7 +2,7 @@ import Dexie from 'dexie';
 
 export const db = new Dexie('KodaAccountDB');
 
-db.version(2).stores({
+db.version(3).stores({
   accounts: '++id, &code, name, type, subType, vatTariffId, isActive',
   journalEntries: '++id, date, reference, description, isPosted, sourceType, sourceId',
   journalLines: '++id, entryId, accountId, vatTariffId',
@@ -14,7 +14,7 @@ db.version(2).stores({
   payments: '++id, date, type, contactId, invoiceId, billId, bankAccountId, journalEntryId',
   vatTariffs: '++id, name, rate, isDefault, isActive',
   bankAccounts: '++id, &name, accountNumber, glAccountId, balance',
-  bankTransactions: '++id, bankAccountId, date, description, amount, status, matchedType, matchedId',
+  bankTransactions: '++id, bankAccountId, date, description, amount, status, matchedType, matchedId, journalEntryId',
   settings: 'key, value'
 });
 

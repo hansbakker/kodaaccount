@@ -112,7 +112,8 @@ export const useBanking = (bankAccountId) => {
       await db.bankTransactions.update(transactionId, {
         status: 'matched',
         matchedType: matchData.type,
-        matchedId: matchData.id || matchData.glAccountId
+        matchedId: matchData.id || matchData.glAccountId,
+        journalEntryId
       });
 
       // Update Bank Account rolling balance

@@ -77,7 +77,9 @@ export const useGeneralLedger = (accountId = null) => {
         reference: entry?.reference,
         description: entry?.description,
         accountName: account?.name,
-        accountCode: account?.code
+        accountCode: account?.code,
+        sourceType: entry?.sourceType,
+        entryId: entry?.id
       };
     }).sort((a, b) => new Date(a.date) - new Date(b.date));
   }, [accountId]);
