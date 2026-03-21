@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useVat } from '../hooks/useVat';
-import { Plus, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, X } from 'lucide-react';
 
 const VatManagement = () => {
   const { tariffs, addTariff, updateTariff, deleteTariff } = useVat();
@@ -95,10 +95,13 @@ const VatManagement = () => {
       </div>
 
       {isModalOpen && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-          <div className="card" style={{ width: '400px' }}>
-            <h3>{editingTariff ? 'Edit Tariff' : 'New VAT Tariff'}</h3>
-            <form onSubmit={handleSubmit} style={{ marginTop: 'var(--space-4)' }}>
+        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}>
+          <div className="modal-card" style={{ maxWidth: '450px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-6)' }}>
+              <h3>{editingTariff ? 'Edit Tariff' : 'New VAT Tariff'}</h3>
+              <button type="button" onClick={closeModal} aria-label="Close modal"><X /></button>
+            </div>
+            <form onSubmit={handleSubmit}>
               <div className="form-group">
                 <label className="label">Name</label>
                 <input 

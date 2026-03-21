@@ -189,11 +189,11 @@ const Banking = () => {
       </div>
       {/* Add Modal */}
       {isAddModalOpen && (
-        <div className="modal-overlay">
+        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setIsAddModalOpen(false); }}>
           <div className="modal-card" style={{ maxWidth: '500px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-6)' }}>
               <h3>Add Bank Transaction</h3>
-              <button onClick={() => setIsAddModalOpen(false)}><X /></button>
+              <button type="button" onClick={() => setIsAddModalOpen(false)} aria-label="Close modal"><X /></button>
             </div>
             <form onSubmit={handleAddTx}>
               <div className="form-group">
@@ -208,7 +208,7 @@ const Banking = () => {
                 <label className="label">Amount</label>
                 <input type="number" step="0.01" className="input" placeholder="e.g. 121.00 or -50.00" value={newTx.amount} onChange={e => setNewTx({...newTx, amount: e.target.value})} required />
               </div>
-              <button className="btn btn-primary" style={{ width: '100%', marginTop: 'var(--space-4)' }}>Add Transaction</button>
+              <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: 'var(--space-4)' }}>Add Transaction</button>
             </form>
           </div>
         </div>

@@ -253,3 +253,18 @@ h3 { font-size: 1.25rem; font-weight: 600; color: var(--text-main); }
   from { opacity: 0; transform: translateY(-20px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+.modal-card h3 + button {
+  padding: 8px;
+  border-radius: 50%;
+  color: var(--text-muted);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-card h3 + button:hover {
+  background-color: var(--secondary-light);
+  color: var(--text-main);
+}

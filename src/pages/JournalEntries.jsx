@@ -119,11 +119,11 @@ const JournalEntries = () => {
       </div>
       {/* New Entry Modal */}
       {isModalOpen && (
-        <div className="modal-overlay">
+        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setIsModalOpen(false); }}>
           <div className="modal-card" style={{ maxWidth: '900px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-6)' }}>
               <h3>New Journal Entry</h3>
-              <button onClick={() => setIsModalOpen(false)}><X /></button>
+              <button type="button" onClick={() => setIsModalOpen(false)} aria-label="Close modal"><X /></button>
             </div>
             
             <form onSubmit={handleSubmit}>
@@ -212,11 +212,11 @@ const JournalEntries = () => {
 
       {/* View Entry Modal */}
       {viewingEntry && (
-        <div className="modal-overlay">
+        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setViewingEntry(null); }}>
           <div className="modal-card" style={{ maxWidth: '700px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-6)' }}>
               <h3>Journal Entry: {viewingEntry.reference || `JE-${viewingEntry.id}`}</h3>
-              <button onClick={() => setViewingEntry(null)}><X /></button>
+              <button type="button" onClick={() => setViewingEntry(null)} aria-label="Close modal"><X /></button>
             </div>
             <p><strong>Date:</strong> {format(new Date(viewingEntry.date), 'dd-MM-yyyy')}</p>
             <p style={{ marginBottom: 'var(--space-4)' }}><strong>Description:</strong> {viewingEntry.description}</p>

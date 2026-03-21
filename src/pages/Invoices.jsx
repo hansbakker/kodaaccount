@@ -151,11 +151,11 @@ const Invoices = () => {
       </div>
       {/* Invoice Modal */}
       {isModalOpen && (
-        <div className="modal-overlay">
+        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setIsModalOpen(false); }}>
           <div className="modal-card" style={{ maxWidth: '1000px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-6)' }}>
               <h3>New Invoice</h3>
-              <button onClick={() => setIsModalOpen(false)}><X /></button>
+              <button type="button" onClick={() => setIsModalOpen(false)} aria-label="Close modal"><X /></button>
             </div>
 
             <form onSubmit={handleSubmit}>
@@ -237,11 +237,11 @@ const Invoices = () => {
 
       {/* Customer Modal */}
       {isCustomerModalOpen && (
-        <div className="modal-overlay">
+        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setIsCustomerModalOpen(false); }}>
           <div className="modal-card" style={{ maxWidth: '450px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-6)' }}>
               <h3>Customers</h3>
-              <button onClick={() => setIsCustomerModalOpen(false)}><X /></button>
+              <button type="button" onClick={() => setIsCustomerModalOpen(false)} aria-label="Close modal"><X /></button>
             </div>
 
             <div style={{ maxHeight: '200px', overflowY: 'auto', marginBottom: 'var(--space-6)' }}>

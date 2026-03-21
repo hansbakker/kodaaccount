@@ -152,11 +152,11 @@ const Bills = () => {
       </div>
       {/* Bill Modal */}
       {isModalOpen && (
-        <div className="modal-overlay">
+        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setIsModalOpen(false); }}>
           <div className="modal-card" style={{ maxWidth: '1000px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-6)' }}>
               <h3>Add Vendor Bill</h3>
-              <button onClick={() => setIsModalOpen(false)}><X /></button>
+              <button type="button" onClick={() => setIsModalOpen(false)} aria-label="Close modal"><X /></button>
             </div>
 
             <form onSubmit={handleSubmit}>
@@ -242,11 +242,11 @@ const Bills = () => {
 
       {/* Vendor Modal */}
       {isVendorModalOpen && (
-        <div className="modal-overlay">
+        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setIsVendorModalOpen(false); }}>
           <div className="modal-card" style={{ maxWidth: '450px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-6)' }}>
               <h3>Vendors</h3>
-              <button onClick={() => setIsVendorModalOpen(false)}><X /></button>
+              <button type="button" onClick={() => setIsVendorModalOpen(false)} aria-label="Close modal"><X /></button>
             </div>
 
             <div style={{ maxHeight: '200px', overflowY: 'auto', marginBottom: 'var(--space-6)' }}>
