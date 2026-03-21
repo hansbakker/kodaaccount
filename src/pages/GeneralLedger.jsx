@@ -135,10 +135,14 @@ const GeneralLedger = () => {
                     <td style={{ padding: '16px', fontSize: '0.875rem' }}>{line.date ? format(new Date(line.date), 'dd/MM/yyyy') : ''}</td>
                     <td style={{ padding: '16px', fontSize: '0.875rem' }}>{line.reference || '-'}</td>
                     <td style={{ padding: '16px' }}>
-                      {line.sourceType?.startsWith('bank') ? (
-                        <span className="badge badge-success" style={{ fontSize: '0.7rem', padding: '2px 6px' }}>Bank</span>
+                      {line.sourceType === 'bank_match' || line.sourceType === 'bank_direct' ? (
+                        <span className="badge badge-success" style={{ fontSize: '0.65rem', padding: '2px 6px', fontWeight: 700 }}>BANK</span>
+                      ) : line.sourceType === 'invoice' ? (
+                        <span className="badge" style={{ fontSize: '0.65rem', padding: '2px 6px', backgroundColor: 'var(--primary-light)', color: 'var(--primary-dark)', fontWeight: 700, border: '1px solid var(--primary-dark)' }}>A/R</span>
+                      ) : line.sourceType === 'bill' ? (
+                        <span className="badge" style={{ fontSize: '0.65rem', padding: '2px 6px', backgroundColor: '#fef3c7', color: '#92400e', fontWeight: 700, border: '1px solid #f59e0b' }}>A/P</span>
                       ) : (
-                        <span className="badge badge-secondary" style={{ fontSize: '0.7rem', padding: '2px 6px' }}>Manual</span>
+                        <span className="badge badge-secondary" style={{ fontSize: '0.65rem', padding: '2px 6px', fontWeight: 700 }}>MANUAL</span>
                       )}
                     </td>
                     {!selectedAccountId && <td style={{ padding: '16px', fontSize: '0.875rem' }}>{line.accountCode}</td>}
