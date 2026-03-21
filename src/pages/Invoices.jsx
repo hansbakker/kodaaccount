@@ -91,23 +91,63 @@ const Invoices = () => {
   return (
     <>
       <div className="animate-fade-in">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-6)' }}>
-        <div>
-          <h1>Invoices (AR)</h1>
-          <p className="text-muted">Manage customer invoices and sales</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-6)' }}>
+          <div>
+            <h1>Invoices (AR)</h1>
+            <p className="text-muted">Manage customer invoices and sales</p>
+          </div>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button className="btn btn-outline" onClick={() => setIsCustomerModalOpen(true)}>
+              <Users size={20} />
+              Customers
+            </button>
+            <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>
+              <Plus size={20} />
+              New Invoice
+            </button>
+          </div>
         </div>
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <button className="btn btn-outline" onClick={() => setIsCustomerModalOpen(true)}>
-            <Users size={20} />
-            Customers
-          </button>
-          <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>
-            <Plus size={20} />
-            New Invoice
-          </button>
-        </div>
-      </div>
 
+        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ textAlign: 'left', backgroundColor: 'var(--bg-main)', borderBottom: '1px solid var(--border-color)' }}>
+                <th style={{ padding: '16px' }}>Date</th>
+                <th style={{ padding: '16px' }}>Number</th>
+                <th style={{ padding: '16px' }}>Customer</th>
+                <th style={{ padding: '16px', textAlign: 'right' }}>Total</th>
+                <th style={{ padding: '16px', textAlign: 'center' }}>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {invoices.length === 0 ? (
+                <tr>
+                  <td colSpan="5" style={{ padding: '40px', textAlign: 'center' }} className="text-muted">
+                    No invoices found. Create your first invoice to get started.
+                  </td>
+                </tr>
+              ) : (
+                invoices.map(invoice => (
+                  <tr key={invoice.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                    <td style={{ padding: '16px' }}>{format(new Date(invoice.date), 'dd/MM/yyyy')}</td>
+                    <td style={{ padding: '16px', fontWeight: 600 }}>{invoice.number}</td>
+                    <td style={{ padding: '16px' }}>
+                      {customers.find(c => c.id === invoice.contactId)?.name || 'Unknown Customer'}
+                    </td>
+                    <td style={{ padding: '16px', textAlign: 'right', fontWeight: 600 }}>
+                      €{invoice.total?.toFixed(2)}
+                    </td>
+                    <td style={{ padding: '16px', textAlign: 'center' }}>
+                      <span className={`badge ${invoice.status === 'paid' ? 'badge-success' : 'badge-warning'}`}>
+                        {invoice.status.toUpperCase()}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
       {/* Invoice Modal */}
       {isModalOpen && (

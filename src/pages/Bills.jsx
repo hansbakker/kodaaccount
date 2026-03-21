@@ -92,23 +92,63 @@ const Bills = () => {
   return (
     <>
       <div className="animate-fade-in">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-6)' }}>
-        <div>
-          <h1>Bills (AP)</h1>
-          <p className="text-muted">Manage vendor bills and purchases</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-6)' }}>
+          <div>
+            <h1>Bills (AP)</h1>
+            <p className="text-muted">Manage vendor bills and purchases</p>
+          </div>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button className="btn btn-outline" onClick={() => setIsVendorModalOpen(true)}>
+              <Truck size={20} />
+              Vendors
+            </button>
+            <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>
+              <Plus size={20} />
+              Add Bill
+            </button>
+          </div>
         </div>
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <button className="btn btn-outline" onClick={() => setIsVendorModalOpen(true)}>
-            <Truck size={20} />
-            Vendors
-          </button>
-          <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>
-            <Plus size={20} />
-            Add Bill
-          </button>
-        </div>
-      </div>
 
+        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ textAlign: 'left', backgroundColor: 'var(--bg-main)', borderBottom: '1px solid var(--border-color)' }}>
+                <th style={{ padding: '16px' }}>Date</th>
+                <th style={{ padding: '16px' }}>Number</th>
+                <th style={{ padding: '16px' }}>Vendor</th>
+                <th style={{ padding: '16px', textAlign: 'right' }}>Total</th>
+                <th style={{ padding: '16px', textAlign: 'center' }}>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bills.length === 0 ? (
+                <tr>
+                  <td colSpan="5" style={{ padding: '40px', textAlign: 'center' }} className="text-muted">
+                    No bills found. Add your first bill to get started.
+                  </td>
+                </tr>
+              ) : (
+                bills.map(bill => (
+                  <tr key={bill.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                    <td style={{ padding: '16px' }}>{format(new Date(bill.date), 'dd/MM/yyyy')}</td>
+                    <td style={{ padding: '16px', fontWeight: 600 }}>{bill.number}</td>
+                    <td style={{ padding: '16px' }}>
+                      {vendors.find(v => v.id === bill.contactId)?.name || 'Unknown Vendor'}
+                    </td>
+                    <td style={{ padding: '16px', textAlign: 'right', fontWeight: 600, color: 'var(--danger)' }}>
+                      €{bill.total?.toFixed(2)}
+                    </td>
+                    <td style={{ padding: '16px', textAlign: 'center' }}>
+                      <span className={`badge ${bill.status === 'paid' ? 'badge-success' : 'badge-warning'}`}>
+                        {bill.status.toUpperCase()}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
       {/* Bill Modal */}
       {isModalOpen && (
