@@ -102,8 +102,8 @@ const ChartOfAccounts = () => {
                 <td style={{ padding: 'var(--space-3)', fontWeight: 600 }}>{acc.code}</td>
                 <td style={{ padding: 'var(--space-3)' }}>{acc.name}</td>
                 <td style={{ padding: 'var(--space-3)' }}>
-                  <span className="badge" style={{ backgroundColor: getTypeColor(acc.type) }}>
-                    {acc.type}
+                  <span className="badge" style={{ ...getTypeStyle(acc.type), fontSize: '0.65rem', padding: '2px 8px', fontWeight: 700 }}>
+                    {acc.type.toUpperCase()}
                   </span>
                 </td>
                 <td style={{ padding: 'var(--space-3)' }}>
@@ -184,14 +184,14 @@ const ChartOfAccounts = () => {
   );
 };
 
-const getTypeColor = (type) => {
+const getTypeStyle = (type) => {
   switch(type) {
-    case 'asset': return '#dcfce7';
-    case 'liability': return '#fee2e2';
-    case 'equity': return '#fef9c3';
-    case 'revenue': return '#e0f2fe';
-    case 'expense': return '#f3e8ff';
-    default: return '#f1f5f9';
+    case 'asset': return { backgroundColor: '#dcfce7', color: '#166534' };
+    case 'liability': return { backgroundColor: '#fee2e2', color: '#991b1b' };
+    case 'equity': return { backgroundColor: '#fef9c3', color: '#854d0e' };
+    case 'revenue': return { backgroundColor: '#e0f2fe', color: '#075985' };
+    case 'expense': return { backgroundColor: '#f3e8ff', color: '#6b21a8' };
+    default: return { backgroundColor: '#f1f5f9', color: '#444' };
   }
 };
 
