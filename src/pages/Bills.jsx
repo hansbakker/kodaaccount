@@ -13,6 +13,7 @@ const Bills = () => {
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isVendorModalOpen, setIsVendorModalOpen] = useState(false);
+  const [isReadOnly, setIsReadOnly] = useState(false);
   
   // Filtering State
   const [filters, setFilters] = useState({
@@ -60,7 +61,7 @@ const Bills = () => {
 
   // VAT Initialization Fix
   React.useEffect(() => {
-    if (tariffs.length > 0 && lines[0].vatTariffId === '') {
+    if (isModalOpen && !isReadOnly && tariffs.length > 0 && lines.length > 0 && lines[0].vatTariffId === '') {
       const defaultTariff = tariffs.find(t => t.isDefault) || tariffs[0];
       if (defaultTariff) {
         const newLines = [...lines];
@@ -68,7 +69,7 @@ const Bills = () => {
         setLines(newLines);
       }
     }
-  }, [tariffs, isModalOpen]);
+  }, [tariffs, isModalOpen, isReadOnly]);
 
   const calculateTotals = () => {
     let subtotal = 0;
@@ -133,6 +134,35 @@ const Bills = () => {
     setVendorForm({ name: '', email: '', vatNumber: '' });
   };
 
+  const handleOpenNewBill = () => {
+    setIsReadOnly(false);
+    setFormData({
+      number: '',
+      contactId: '',
+      date: format(new Date(), 'yyyy-MM-dd'),
+      dueDate: format(addDays(new Date(), 30), 'yyyy-MM-dd'),
+    });
+    setLines([{ description: '', quantity: 1, unitPrice: 0, accountId: '', vatTariffId: '' }]);
+    setIsModalOpen(true);
+  };
+
+  const handleViewBill = async (bill) => {
+    const billLines = await getLinesForBill(bill.id);
+    setFormData({
+      number: bill.number,
+      contactId: bill.contactId.toString(),
+      date: format(new Date(bill.date), 'yyyy-MM-dd'),
+      dueDate: format(new Date(bill.dueDate), 'yyyy-MM-dd'),
+    });
+    setLines(billLines.map(line => ({
+      ...line,
+      accountId: line.accountId.toString(),
+      vatTariffId: line.vatTariffId.toString()
+    })));
+    setIsReadOnly(true);
+    setIsModalOpen(true);
+  };
+
   return (
     <>
       <div className="animate-fade-in">
@@ -146,7 +176,7 @@ const Bills = () => {
               <Truck size={20} />
               Vendors
             </button>
-            <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>
+            <button className="btn btn-primary" onClick={handleOpenNewBill}>
               <Plus size={20} />
               Add Bill
             </button>
@@ -220,7 +250,12 @@ const Bills = () => {
                 </tr>
               ) : (
                 filteredBills.map(bill => (
-                  <tr key={bill.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                  <tr 
+                    key={bill.id} 
+                    style={{ borderBottom: '1px solid var(--border-color)', cursor: 'pointer', transition: 'background-color 0.2s' }} 
+                    className="table-row-hover"
+                    onClick={() => handleViewBill(bill)}
+                  >
                     <td style={{ padding: '16px' }}>{format(new Date(bill.date), 'dd/MM/yyyy')}</td>
                     <td style={{ padding: '16px', fontWeight: 600 }}>{bill.number}</td>
                     <td style={{ padding: '16px' }}>
@@ -246,7 +281,7 @@ const Bills = () => {
         <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setIsModalOpen(false); }}>
           <div className="modal-card" style={{ maxWidth: '1000px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-6)' }}>
-              <h3>Add Vendor Bill</h3>
+              <h3>{isReadOnly ? `Bill ${formData.number}` : 'Add Vendor Bill'}</h3>
               <button type="button" onClick={() => setIsModalOpen(false)} aria-label="Close modal"><X /></button>
             </div>
 
@@ -254,22 +289,22 @@ const Bills = () => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '20px', marginBottom: 'var(--space-6)' }}>
                 <div className="form-group">
                   <label className="label">Vendor</label>
-                  <select className="input" value={formData.contactId} onChange={e => setFormData({...formData, contactId: e.target.value})} required>
+                  <select className="input" value={formData.contactId} onChange={e => setFormData({...formData, contactId: e.target.value})} required disabled={isReadOnly}>
                     <option value="">Select Vendor...</option>
                     {vendors.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
                   </select>
                 </div>
                 <div className="form-group">
                   <label className="label">Bill Number</label>
-                  <input type="text" className="input" placeholder="e.g. 2024-88" value={formData.number} onChange={e => setFormData({...formData, number: e.target.value})} required />
+                  <input type="text" className="input" placeholder="e.g. 2024-88" value={formData.number} onChange={e => setFormData({...formData, number: e.target.value})} required disabled={isReadOnly} />
                 </div>
                 <div className="form-group">
                   <label className="label">Date</label>
-                  <input type="date" className="input" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} required />
+                  <input type="date" className="input" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} required disabled={isReadOnly} />
                 </div>
                 <div className="form-group">
                   <label className="label">Due Date</label>
-                  <input type="date" className="input" value={formData.dueDate} onChange={e => setFormData({...formData, dueDate: e.target.value})} required />
+                  <input type="date" className="input" value={formData.dueDate} onChange={e => setFormData({...formData, dueDate: e.target.value})} required disabled={isReadOnly} />
                 </div>
               </div>
 
@@ -287,23 +322,23 @@ const Bills = () => {
                 <tbody>
                   {lines.map((line, index) => (
                     <tr key={index}>
-                      <td><input className="input" value={line.description} onChange={e => handleLineChange(index, 'description', e.target.value)} placeholder="Expense description..." /></td>
-                      <td><input type="number" className="input" value={line.quantity} onChange={e => handleLineChange(index, 'quantity', e.target.value)} /></td>
-                      <td><input type="number" className="input" value={line.unitPrice} onChange={e => handleLineChange(index, 'unitPrice', e.target.value)} /></td>
+                      <td><input className="input" value={line.description} onChange={e => handleLineChange(index, 'description', e.target.value)} placeholder="Expense description..." disabled={isReadOnly} /></td>
+                      <td><input type="number" className="input" value={line.quantity} onChange={e => handleLineChange(index, 'quantity', e.target.value)} disabled={isReadOnly} /></td>
+                      <td><input type="number" className="input" value={line.unitPrice} onChange={e => handleLineChange(index, 'unitPrice', e.target.value)} disabled={isReadOnly} /></td>
                       <td>
-                        <select className="input" value={line.accountId} onChange={e => handleLineChange(index, 'accountId', e.target.value)}>
+                        <select className="input" value={line.accountId} onChange={e => handleLineChange(index, 'accountId', e.target.value)} disabled={isReadOnly}>
                           <option value="">Account...</option>
                           {accounts.filter(a => a.type === 'expense' || a.type === 'asset').map(a => <option key={a.id} value={a.id}>{a.code} - {a.name}</option>)}
                         </select>
                       </td>
                       <td>
-                        <select className="input" value={line.vatTariffId} onChange={e => handleLineChange(index, 'vatTariffId', e.target.value)}>
+                        <select className="input" value={line.vatTariffId} onChange={e => handleLineChange(index, 'vatTariffId', e.target.value)} disabled={isReadOnly}>
                           {tariffs.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                         </select>
                       </td>
                       <td style={{ textAlign: 'right', fontWeight: 600 }}>€{((line.quantity * line.unitPrice) * (1 + (tariffs.find(t => t.id === parseInt(line.vatTariffId))?.rate || 0))).toFixed(2)}</td>
                       <td style={{ textAlign: 'center' }}>
-                        {lines.length > 1 && (
+                        {lines.length > 1 && !isReadOnly && (
                           <button type="button" onClick={() => handleRemoveLine(index)} style={{ color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer' }}>
                             <X size={16} />
                           </button>
@@ -314,9 +349,11 @@ const Bills = () => {
                 </tbody>
               </table>
 
-              <button type="button" className="btn btn-outline" style={{ marginBottom: 'var(--space-6)' }} onClick={handleAddLine}>
-                <Plus size={16} /> Add Line
-              </button>
+              {!isReadOnly && (
+                <button type="button" className="btn btn-outline" style={{ marginBottom: 'var(--space-6)' }} onClick={handleAddLine}>
+                  <Plus size={16} /> Add Line
+                </button>
+              )}
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '40px', padding: 'var(--space-4) 0', borderTop: '1px solid var(--border-color)' }}>
                 <div>
@@ -334,8 +371,8 @@ const Bills = () => {
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: 'var(--space-6)' }}>
-                <button type="button" className="btn btn-outline" onClick={() => setIsModalOpen(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary"><Save size={20} /> Post Bill</button>
+                <button type="button" className="btn btn-outline" onClick={() => setIsModalOpen(false)}>{isReadOnly ? 'Close' : 'Cancel'}</button>
+                {!isReadOnly && <button type="submit" className="btn btn-primary"><Save size={20} /> Post Bill</button>}
               </div>
             </form>
           </div>

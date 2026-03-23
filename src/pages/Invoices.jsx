@@ -13,6 +13,7 @@ const Invoices = () => {
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
+  const [isReadOnly, setIsReadOnly] = useState(false);
   
   // Filtering State
   const [filters, setFilters] = useState({
@@ -61,7 +62,7 @@ const Invoices = () => {
 
   // VAT Initialization Fix
   React.useEffect(() => {
-    if (tariffs.length > 0 && lines[0].vatTariffId === '') {
+    if (isModalOpen && !isReadOnly && tariffs.length > 0 && lines.length > 0 && lines[0].vatTariffId === '') {
       const defaultTariff = tariffs.find(t => t.isDefault) || tariffs[0];
       if (defaultTariff) {
         const newLines = [...lines];
@@ -69,7 +70,7 @@ const Invoices = () => {
         setLines(newLines);
       }
     }
-  }, [tariffs, isModalOpen]);
+  }, [tariffs, isModalOpen, isReadOnly]);
 
   const calculateTotals = () => {
     let subtotal = 0;
@@ -133,6 +134,35 @@ const Invoices = () => {
     setCustomerForm({ name: '', email: '', vatNumber: '' });
   };
 
+  const handleOpenNewInvoice = () => {
+    setIsReadOnly(false);
+    setFormData({
+      number: `INV-${new Date().getFullYear()}-${1001 + invoices.length}`,
+      contactId: '',
+      date: format(new Date(), 'yyyy-MM-dd'),
+      dueDate: format(addDays(new Date(), 14), 'yyyy-MM-dd'),
+    });
+    setLines([{ description: '', quantity: 1, unitPrice: 0, accountId: '', vatTariffId: '' }]);
+    setIsModalOpen(true);
+  };
+
+  const handleViewInvoice = async (invoice) => {
+    const invoiceLines = await getLinesForInvoice(invoice.id);
+    setFormData({
+      number: invoice.number,
+      contactId: invoice.contactId.toString(),
+      date: format(new Date(invoice.date), 'yyyy-MM-dd'),
+      dueDate: format(new Date(invoice.dueDate), 'yyyy-MM-dd'),
+    });
+    setLines(invoiceLines.map(line => ({
+      ...line,
+      accountId: line.accountId.toString(),
+      vatTariffId: line.vatTariffId.toString()
+    })));
+    setIsReadOnly(true);
+    setIsModalOpen(true);
+  };
+
   return (
     <>
       <div className="animate-fade-in">
@@ -146,7 +176,7 @@ const Invoices = () => {
               <Users size={20} />
               Customers
             </button>
-            <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>
+            <button className="btn btn-primary" onClick={handleOpenNewInvoice}>
               <Plus size={20} />
               New Invoice
             </button>
@@ -220,7 +250,12 @@ const Invoices = () => {
                 </tr>
               ) : (
                 filteredInvoices.map(invoice => (
-                  <tr key={invoice.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                  <tr 
+                    key={invoice.id} 
+                    style={{ borderBottom: '1px solid var(--border-color)', cursor: 'pointer', transition: 'background-color 0.2s' }} 
+                    className="table-row-hover"
+                    onClick={() => handleViewInvoice(invoice)}
+                  >
                     <td style={{ padding: '16px' }}>{format(new Date(invoice.date), 'dd/MM/yyyy')}</td>
                     <td style={{ padding: '16px', fontWeight: 600 }}>{invoice.number}</td>
                     <td style={{ padding: '16px' }}>
@@ -246,7 +281,7 @@ const Invoices = () => {
         <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setIsModalOpen(false); }}>
           <div className="modal-card" style={{ maxWidth: '1000px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-6)' }}>
-              <h3>New Invoice</h3>
+              <h3>{isReadOnly ? `Invoice ${formData.number}` : 'New Invoice'}</h3>
               <button type="button" onClick={() => setIsModalOpen(false)} aria-label="Close modal"><X /></button>
             </div>
 
@@ -254,18 +289,18 @@ const Invoices = () => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px', marginBottom: 'var(--space-6)' }}>
                 <div className="form-group">
                   <label className="label">Customer</label>
-                  <select className="input" value={formData.contactId} onChange={e => setFormData({...formData, contactId: e.target.value})} required>
+                  <select className="input" value={formData.contactId} onChange={e => setFormData({...formData, contactId: e.target.value})} required disabled={isReadOnly}>
                     <option value="">Select Customer...</option>
                     {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
                 <div className="form-group">
                   <label className="label">Date</label>
-                  <input type="date" className="input" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} required />
+                  <input type="date" className="input" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} required disabled={isReadOnly} />
                 </div>
                 <div className="form-group">
                   <label className="label">Due Date</label>
-                  <input type="date" className="input" value={formData.dueDate} onChange={e => setFormData({...formData, dueDate: e.target.value})} required />
+                  <input type="date" className="input" value={formData.dueDate} onChange={e => setFormData({...formData, dueDate: e.target.value})} required disabled={isReadOnly} />
                 </div>
               </div>
 
@@ -283,23 +318,23 @@ const Invoices = () => {
                 <tbody>
                   {lines.map((line, index) => (
                     <tr key={index}>
-                      <td><input className="input" value={line.description} onChange={e => handleLineChange(index, 'description', e.target.value)} placeholder="Service description..." /></td>
-                      <td><input type="number" className="input" value={line.quantity} onChange={e => handleLineChange(index, 'quantity', e.target.value)} /></td>
-                      <td><input type="number" className="input" value={line.unitPrice} onChange={e => handleLineChange(index, 'unitPrice', e.target.value)} /></td>
+                      <td><input className="input" value={line.description} onChange={e => handleLineChange(index, 'description', e.target.value)} placeholder="Service description..." disabled={isReadOnly} /></td>
+                      <td><input type="number" className="input" value={line.quantity} onChange={e => handleLineChange(index, 'quantity', e.target.value)} disabled={isReadOnly} /></td>
+                      <td><input type="number" className="input" value={line.unitPrice} onChange={e => handleLineChange(index, 'unitPrice', e.target.value)} disabled={isReadOnly} /></td>
                       <td>
-                        <select className="input" value={line.accountId} onChange={e => handleLineChange(index, 'accountId', e.target.value)}>
+                        <select className="input" value={line.accountId} onChange={e => handleLineChange(index, 'accountId', e.target.value)} disabled={isReadOnly}>
                           <option value="">Account...</option>
                           {accounts.filter(a => a.type === 'revenue').map(a => <option key={a.id} value={a.id}>{a.code} - {a.name}</option>)}
                         </select>
                       </td>
                       <td>
-                        <select className="input" value={line.vatTariffId} onChange={e => handleLineChange(index, 'vatTariffId', e.target.value)}>
+                        <select className="input" value={line.vatTariffId} onChange={e => handleLineChange(index, 'vatTariffId', e.target.value)} disabled={isReadOnly}>
                           {tariffs.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                         </select>
                       </td>
                       <td style={{ textAlign: 'right', fontWeight: 600 }}>€{((line.quantity * line.unitPrice) * (1 + (tariffs.find(t => t.id === parseInt(line.vatTariffId))?.rate || 0))).toFixed(2)}</td>
                       <td style={{ textAlign: 'center' }}>
-                        {lines.length > 1 && (
+                        {lines.length > 1 && !isReadOnly && (
                           <button type="button" onClick={() => handleRemoveLine(index)} style={{ color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer' }}>
                             <X size={16} />
                           </button>
@@ -310,9 +345,11 @@ const Invoices = () => {
                 </tbody>
               </table>
 
-              <button type="button" className="btn btn-outline" style={{ marginBottom: 'var(--space-6)' }} onClick={handleAddLine}>
-                <Plus size={16} /> Add Line
-              </button>
+              {!isReadOnly && (
+                <button type="button" className="btn btn-outline" style={{ marginBottom: 'var(--space-6)' }} onClick={handleAddLine}>
+                  <Plus size={16} /> Add Line
+                </button>
+              )}
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '40px', padding: 'var(--space-4) 0', borderTop: '1px solid var(--border-color)' }}>
                 <div>
@@ -330,8 +367,8 @@ const Invoices = () => {
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: 'var(--space-6)' }}>
-                <button type="button" className="btn btn-outline" onClick={() => setIsModalOpen(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary"><Save size={20} /> Post Invoice</button>
+                <button type="button" className="btn btn-outline" onClick={() => setIsModalOpen(false)}>{isReadOnly ? 'Close' : 'Cancel'}</button>
+                {!isReadOnly && <button type="submit" className="btn btn-primary"><Save size={20} /> Post Invoice</button>}
               </div>
             </form>
           </div>
