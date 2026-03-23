@@ -183,6 +183,12 @@ input, select, textarea {
 .badge-warning { background-color: #fef9c3; color: #854d0e; }
 .badge-danger { background-color: #fee2e2; color: #991b1b; }
 
+.table-row-hover:hover {
+  background-color: var(--secondary-light);
+  transform: scale(1.001);
+  box-shadow: var(--shadow-sm);
+}
+
 /* Forms */
 .form-group {
   margin-bottom: var(--space-4);

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useBills } from '../hooks/useBills';
 import { useAccounts } from '../hooks/useAccounts';
 import { useVat, calculateVat } from '../hooks/useVat';
@@ -60,8 +60,8 @@ const Bills = () => {
   };
 
   // VAT Initialization Fix
-  React.useEffect(() => {
-    if (isModalOpen && !isReadOnly && tariffs.length > 0 && lines.length > 0 && lines[0].vatTariffId === '') {
+  useEffect(() => {
+    if (isModalOpen && !isReadOnly && tariffs.length > 0 && lines.length > 0 && (lines[0].vatTariffId === '' || !lines[0].vatTariffId)) {
       const defaultTariff = tariffs.find(t => t.isDefault) || tariffs[0];
       if (defaultTariff) {
         const newLines = [...lines];
@@ -69,7 +69,7 @@ const Bills = () => {
         setLines(newLines);
       }
     }
-  }, [tariffs, isModalOpen, isReadOnly]);
+  }, [isModalOpen, isReadOnly, tariffs.length]);
 
   const calculateTotals = () => {
     let subtotal = 0;
