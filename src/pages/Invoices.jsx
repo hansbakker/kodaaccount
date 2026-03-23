@@ -150,14 +150,14 @@ const Invoices = () => {
     const invoiceLines = await getLinesForInvoice(invoice.id);
     setFormData({
       number: invoice.number,
-      contactId: invoice.contactId.toString(),
+      contactId: invoice.contactId?.toString() || '',
       date: format(new Date(invoice.date), 'yyyy-MM-dd'),
       dueDate: format(new Date(invoice.dueDate), 'yyyy-MM-dd'),
     });
     setLines(invoiceLines.map(line => ({
       ...line,
-      accountId: line.accountId.toString(),
-      vatTariffId: line.vatTariffId.toString()
+      accountId: line.accountId?.toString() || '',
+      vatTariffId: line.vatTariffId?.toString() || ''
     })));
     setIsReadOnly(true);
     setIsModalOpen(true);
