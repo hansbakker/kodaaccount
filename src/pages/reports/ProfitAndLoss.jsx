@@ -54,7 +54,12 @@ const ProfitAndLoss = () => {
           </div>
         </div>
 
-        <div className="card" style={{ backgroundColor: pnl.netProfit >= 0 ? '#dcfce7' : '#fee2e2', border: 'none', marginBottom: 0 }}>
+        <div className="card" style={{ 
+          backgroundColor: pnl.netProfit >= 0 ? '#dcfce7' : '#fee2e2', 
+          color: pnl.netProfit >= 0 ? '#166534' : '#991b1b',
+          border: 'none', 
+          marginBottom: 0 
+        }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '1.4rem' }}>
             <span>Net Profit / (Loss)</span>
             <span>€{pnl.netProfit.toFixed(2)}</span>
