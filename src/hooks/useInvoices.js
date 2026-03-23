@@ -3,7 +3,7 @@ import { db } from '../db/schema';
 
 export const useInvoices = () => {
   const invoices = useLiveQuery(() => db.invoices.orderBy('date').reverse().toArray());
-  const customers = useLiveQuery(() => db.contacts.where('type').anyOf(['customer', 'both']).toArray());
+  const customers = useLiveQuery(() => db.contacts.where('type').anyOf(['customer', 'both']).toArray().then(arr => arr.filter(c => c.isActive !== false)));
 
   const addInvoice = async (invoice, lines) => {
     return await db.transaction('rw', db.invoices, db.invoiceLines, db.journalEntries, db.journalLines, db.accounts, async () => {

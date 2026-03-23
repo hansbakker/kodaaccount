@@ -3,7 +3,7 @@ import { db } from '../db/schema';
 
 export const useBills = () => {
   const bills = useLiveQuery(() => db.bills.orderBy('date').reverse().toArray());
-  const vendors = useLiveQuery(() => db.contacts.where('type').anyOf(['vendor', 'both']).toArray());
+  const vendors = useLiveQuery(() => db.contacts.where('type').anyOf(['vendor', 'both']).toArray().then(arr => arr.filter(v => v.isActive !== false)));
 
   const addBill = async (bill, lines) => {
     return await db.transaction('rw', db.bills, db.billLines, db.journalEntries, db.journalLines, db.accounts, async () => {

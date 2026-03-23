@@ -3,7 +3,7 @@ import { db } from '../db/schema';
 
 export const useAccounts = () => {
   const accounts = useLiveQuery(() => db.accounts.orderBy('code').toArray());
-  const vatTariffs = useLiveQuery(() => db.vatTariffs.where('isActive').equals(true).toArray());
+  const vatTariffs = useLiveQuery(() => db.vatTariffs.toArray().then(arr => arr.filter(t => t.isActive)));
 
   const addAccount = async (account) => {
     return await db.accounts.add({
