@@ -55,6 +55,7 @@
   --border-color: #1e293b;
   --sidebar-bg: #020617;
   --secondary-light: #1e293b;
+  --secondary-dark: #94a3b8;
 }
 
 * {
@@ -207,6 +208,14 @@ input, select, textarea {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.input:disabled {
+  background-color: var(--secondary-light);
+  color: var(--text-main);
+  opacity: 0.8;
+  cursor: not-allowed;
+  border-color: var(--border-color);
 }
 
 /* Typography */
