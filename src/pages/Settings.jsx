@@ -23,11 +23,12 @@ const Settings = () => {
   };
 
   const exportData = async () => {
+    console.log('Exporting data...');
     const data = {};
     for (const table of db.tables) {
       data[table.name] = await table.toArray();
     }
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/octet-stream' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.style.display = 'none';
@@ -38,7 +39,7 @@ const Settings = () => {
     setTimeout(() => {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-    }, 100);
+    }, 500);
   };
 
   const importData = async (e) => {
