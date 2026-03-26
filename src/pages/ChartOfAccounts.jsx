@@ -155,6 +155,7 @@ const ChartOfAccounts = () => {
                   <option value="liability">Liability</option>
                   <option value="equity">Equity</option>
                   <option value="revenue">Revenue</option>
+                  <option value="cos">Cost of Sales</option>
                   <option value="expense">Expense</option>
                 </select>
               </div>
@@ -190,6 +191,7 @@ const getTypeStyle = (type) => {
     case 'liability': return { backgroundColor: '#fee2e2', color: '#991b1b' };
     case 'equity': return { backgroundColor: '#fef9c3', color: '#854d0e' };
     case 'revenue': return { backgroundColor: '#e0f2fe', color: '#075985' };
+    case 'cos': return { backgroundColor: '#ffedd5', color: '#9a3412' }; // Orange-ish
     case 'expense': return { backgroundColor: '#f3e8ff', color: '#6b21a8' };
     default: return { backgroundColor: '#f1f5f9', color: '#444' };
   }

@@ -40,6 +40,35 @@ const ProfitAndLoss = () => {
           </div>
         </div>
 
+        <h3 style={{ borderBottom: '2px solid var(--border-color)', paddingBottom: '12px', marginBottom: '20px' }}>Cost of Sales</h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+          {pnl.costOfSales.map(acc => (
+            <div key={acc.id} style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span>{acc.code} {acc.name}</span>
+              <span style={{ fontWeight: 600 }}>€{acc.balance.toFixed(2)}</span>
+            </div>
+          ))}
+          <div style={{ borderTop: '1px solid var(--border-color)', marginTop: '8px', paddingTop: '12px', display: 'flex', justifyContent: 'space-between', fontWeight: 700, fontSize: '1.1rem', color: 'var(--danger)' }}>
+            <span>Total Cost of Sales</span>
+            <span>€{pnl.totalCostOfSales.toFixed(2)}</span>
+          </div>
+        </div>
+
+        <div style={{ 
+          backgroundColor: 'var(--secondary-light)', 
+          padding: '16px', 
+          borderRadius: '8px', 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          fontWeight: 700, 
+          fontSize: '1.2rem',
+          marginBottom: '32px',
+          border: '1px solid var(--border-color)'
+        }}>
+          <span>Gross Margin</span>
+          <span>€{pnl.grossMargin.toFixed(2)}</span>
+        </div>
+
         <h3 style={{ borderBottom: '2px solid var(--border-color)', paddingBottom: '12px', marginBottom: '20px' }}>Expenses</h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '32px' }}>
           {pnl.expenses.map(acc => (

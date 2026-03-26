@@ -20,7 +20,7 @@ export const useReports = (dateRange = { start: startOfYear(new Date()), end: en
       const accLines = filteredLines.filter(l => l.accountId === acc.id);
       const debit = accLines.reduce((sum, l) => sum + l.debit, 0);
       const credit = accLines.reduce((sum, l) => sum + l.credit, 0);
-      const balance = (acc.type === 'asset' || acc.type === 'expense') 
+      const balance = (acc.type === 'asset' || acc.type === 'expense' || acc.type === 'cos') 
         ? debit - credit 
         : credit - debit;
       
@@ -40,11 +40,14 @@ export const useReports = (dateRange = { start: startOfYear(new Date()), end: en
     // 2. Profit & Loss (Revenue, Expense)
     const pnl = {
       revenue: accountBalances.filter(a => a.type === 'revenue'),
+      costOfSales: accountBalances.filter(a => a.type === 'cos'),
       expenses: accountBalances.filter(a => a.type === 'expense'),
     };
     pnl.totalRevenue = pnl.revenue.reduce((sum, a) => sum + a.balance, 0);
+    pnl.totalCostOfSales = pnl.costOfSales.reduce((sum, a) => sum + a.balance, 0);
+    pnl.grossMargin = pnl.totalRevenue - pnl.totalCostOfSales;
     pnl.totalExpenses = pnl.expenses.reduce((sum, a) => sum + a.balance, 0);
-    pnl.netProfit = pnl.totalRevenue - pnl.totalExpenses;
+    pnl.netProfit = pnl.grossMargin - pnl.totalExpenses;
 
     // 3. VAT Report
     const vatTariffs = await db.vatTariffs.toArray();
@@ -58,7 +61,7 @@ export const useReports = (dateRange = { start: startOfYear(new Date()), end: en
       // Net Purchases (exclude the VAT line itself, only the expense/asset line)
       const purchaseLines = filteredLines.filter(l => 
         l.vatTariffId === t.id && 
-        ['expense', 'asset'].includes(accounts.find(a => a.id === l.accountId)?.type) &&
+        ['expense', 'asset', 'cos'].includes(accounts.find(a => a.id === l.accountId)?.type) &&
         !accounts.find(a => a.id === l.accountId)?.subType?.includes('vat') // Exclude VAT accounts
       );
       
