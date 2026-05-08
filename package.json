@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "npm run build && cp dist/index.html /Users/hansbakker/accounting/KodaAccount/KodaAccount/dist/index.html && echo '✅ Deployed to production'",
+    "deploy:push": "git add -A && git commit -m 'chore: deploy' && git push && npm run deploy"
   },
   "dependencies": {
     "chart.js": "^4.5.1",

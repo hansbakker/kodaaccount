@@ -1,13 +1,21 @@
 import React, { useState, useMemo } from 'react';
 import { useJournalEntries } from '../hooks/useJournalEntries';
 import { useAccounts } from '../hooks/useAccounts';
-import { Plus, Trash2, Save, X, Eye, Search } from 'lucide-react';
+import { Plus, Trash2, Save, X, Eye, Search, Paperclip } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import DateRangePicker from '../components/shared/DateRangePicker';
+import AttachmentSection from '../components/shared/AttachmentSection';
+import { db } from '../db/schema';
+import { useLiveQuery } from 'dexie-react-hooks';
 
 const JournalEntries = () => {
   const { entries, addJournalEntry, deleteJournalEntry, getLinesForEntry } = useJournalEntries();
   const { accounts } = useAccounts();
+  // Attachment counts for list indicators
+  const attachmentCounts = useLiveQuery(async () => {
+    const all = await db.attachments.where('entityType').equals('journal').toArray();
+    return all.reduce((map, a) => { map[a.entityId] = (map[a.entityId] || 0) + 1; return map; }, {});
+  }) || {};
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewingEntry, setViewingEntry] = useState(null);
   const [viewLines, setViewLines] = useState([]);
@@ -166,7 +174,14 @@ const JournalEntries = () => {
                 filteredEntries.map(entry => (
                   <tr key={entry.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
                     <td style={{ padding: '16px' }}>{format(new Date(entry.date), 'dd/MM/yyyy')}</td>
-                    <td style={{ padding: '16px', fontWeight: 600 }}>{entry.reference || `JE-${entry.id}`}</td>
+                    <td style={{ padding: '16px', fontWeight: 600 }}>
+                      {entry.reference || `JE-${entry.id}`}
+                      {attachmentCounts[entry.id] > 0 && (
+                        <span title={`${attachmentCounts[entry.id]} attachment(s)`} style={{ marginLeft: '6px', color: 'var(--primary)', opacity: 0.7 }}>
+                          <Paperclip size={12} style={{ display: 'inline', verticalAlign: 'middle' }} />
+                        </span>
+                      )}
+                    </td>
                     <td style={{ padding: '16px' }}>{entry.description}</td>
                     <td style={{ padding: '16px', textAlign: 'right' }}>
                       <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
@@ -289,7 +304,7 @@ const JournalEntries = () => {
             <p><strong>Date:</strong> {format(new Date(viewingEntry.date), 'dd-MM-yyyy')}</p>
             <p style={{ marginBottom: 'var(--space-4)' }}><strong>Description:</strong> {viewingEntry.description}</p>
             
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 'var(--space-4)' }}>
               <thead>
                 <tr style={{ textAlign: 'left', borderBottom: '2px solid var(--border-color)' }}>
                   <th style={{ padding: '8px' }}>Account</th>
@@ -307,6 +322,8 @@ const JournalEntries = () => {
                 ))}
               </tbody>
             </table>
+
+            <AttachmentSection entityType="journal" entityId={viewingEntry.id} readOnly={false} />
           </div>
         </div>
       )}

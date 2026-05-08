@@ -2,18 +2,28 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useInvoices } from '../hooks/useInvoices';
 import { useAccounts } from '../hooks/useAccounts';
 import { useVat, calculateVat } from '../hooks/useVat';
-import { Plus, Users, FileText, X, Save, Search, Filter } from 'lucide-react';
+import { Plus, Users, FileText, X, Save, Search, Filter, Paperclip } from 'lucide-react';
 import { format, addDays, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import DateRangePicker from '../components/shared/DateRangePicker';
+import AttachmentSection from '../components/shared/AttachmentSection';
+import { db } from '../db/schema';
+import { useLiveQuery } from 'dexie-react-hooks';
 
 const Invoices = () => {
   const { invoices, customers, addInvoice, addCustomer, getLinesForInvoice } = useInvoices();
   const { accounts } = useAccounts();
   const { tariffs } = useVat();
   
+  // Attachment counts for list indicators
+  const attachmentCounts = useLiveQuery(async () => {
+    const all = await db.attachments.where('entityType').equals('invoice').toArray();
+    return all.reduce((map, a) => { map[a.entityId] = (map[a.entityId] || 0) + 1; return map; }, {});
+  }) || {};
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
   const [isReadOnly, setIsReadOnly] = useState(false);
+  const [viewingInvoiceId, setViewingInvoiceId] = useState(null);
   
   // Filtering State
   const [filters, setFilters] = useState({
@@ -136,6 +146,7 @@ const Invoices = () => {
 
   const handleOpenNewInvoice = () => {
     setIsReadOnly(false);
+    setViewingInvoiceId(null);
     setFormData({
       number: `INV-${new Date().getFullYear()}-${1001 + invoices.length}`,
       contactId: '',
@@ -159,6 +170,7 @@ const Invoices = () => {
       accountId: line.accountId?.toString() || '',
       vatTariffId: line.vatTariffId?.toString() || ''
     })));
+    setViewingInvoiceId(invoice.id);
     setIsReadOnly(true);
     setIsModalOpen(true);
   };
@@ -257,7 +269,14 @@ const Invoices = () => {
                     onClick={() => handleViewInvoice(invoice)}
                   >
                     <td style={{ padding: '16px' }}>{format(new Date(invoice.date), 'dd/MM/yyyy')}</td>
-                    <td style={{ padding: '16px', fontWeight: 600 }}>{invoice.number}</td>
+                    <td style={{ padding: '16px', fontWeight: 600 }}>
+                      {invoice.number}
+                      {attachmentCounts[invoice.id] > 0 && (
+                        <span title={`${attachmentCounts[invoice.id]} attachment(s)`} style={{ marginLeft: '6px', color: 'var(--primary)', opacity: 0.7 }}>
+                          <Paperclip size={12} style={{ display: 'inline', verticalAlign: 'middle' }} />
+                        </span>
+                      )}
+                    </td>
                     <td style={{ padding: '16px' }}>
                       {customers.find(c => c.id === invoice.contactId)?.name || 'Unknown Customer'}
                     </td>
@@ -370,6 +389,10 @@ const Invoices = () => {
                 <button type="button" className="btn btn-outline" onClick={() => setIsModalOpen(false)}>{isReadOnly ? 'Close' : 'Cancel'}</button>
                 {!isReadOnly && <button type="submit" className="btn btn-primary"><Save size={20} /> Post Invoice</button>}
               </div>
+
+              {isReadOnly && viewingInvoiceId && (
+                <AttachmentSection entityType="invoice" entityId={viewingInvoiceId} readOnly={false} />
+              )}
             </form>
           </div>
         </div>

@@ -5,7 +5,8 @@ import {
   TrendingDown, 
   Wallet, 
   Receipt, 
-  AlertCircle 
+  AlertCircle,
+  ShoppingCart
 } from 'lucide-react';
 import {
   Chart as ChartJS,
@@ -38,19 +39,21 @@ const Dashboard = () => {
 
   const kpis = [
     { label: 'Total Revenue', value: pnl.totalRevenue, icon: <TrendingUp color="var(--success)" />, color: 'var(--success)' },
+    { label: 'Cost of Sales', value: pnl.totalCostOfSales, icon: <ShoppingCart color="var(--warning)" />, color: 'var(--warning)' },
+    { label: 'Gross Margin', value: pnl.grossMargin, icon: <TrendingUp color="var(--info)" />, color: 'var(--info)' },
     { label: 'Total Expenses', value: pnl.totalExpenses, icon: <TrendingDown color="var(--danger)" />, color: 'var(--danger)' },
     { label: 'Net Profit', value: pnl.netProfit, icon: <Wallet color="var(--primary)" />, color: 'var(--primary)' },
     { label: 'Bank Balance', value: accountBalances.find(a => a.subType === 'bank')?.balance || 0, icon: <Receipt color="var(--info)" />, color: 'var(--info)' },
   ];
 
   const barData = {
-    labels: ['Revenue', 'Expenses', 'Profit'],
+    labels: ['Revenue', 'Cost of Sales', 'Gross Margin', 'Expenses', 'Net Profit'],
     datasets: [
       {
         label: 'Financial Performance',
-        data: [pnl.totalRevenue, pnl.totalExpenses, pnl.netProfit],
-        backgroundColor: ['#dcfce7', '#fee2e2', '#e0f2fe'],
-        borderColor: ['#10b981', '#ef4444', '#3b82f6'],
+        data: [pnl.totalRevenue, pnl.totalCostOfSales, pnl.grossMargin, pnl.totalExpenses, pnl.netProfit],
+        backgroundColor: ['#dcfce7', '#fef9c3', '#e0f2fe', '#fee2e2', '#ede9fe'],
+        borderColor: ['#10b981', '#eab308', '#3b82f6', '#ef4444', '#8b5cf6'],
         borderWidth: 1,
       },
     ],

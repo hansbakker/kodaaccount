@@ -18,6 +18,24 @@ db.version(3).stores({
   settings: 'key, value'
 });
 
+// Version 4: Add attachments table (Drive links)
+db.version(4).stores({
+  accounts: '++id, &code, name, type, subType, vatTariffId, isActive',
+  journalEntries: '++id, date, reference, description, isPosted, sourceType, sourceId',
+  journalLines: '++id, entryId, accountId, vatTariffId',
+  contacts: '++id, type, name, email, phone, vatNumber, isActive',
+  invoices: '++id, number, contactId, date, dueDate, status, journalEntryId',
+  invoiceLines: '++id, invoiceId, accountId, vatTariffId',
+  bills: '++id, number, contactId, date, dueDate, status, journalEntryId',
+  billLines: '++id, billId, accountId, vatTariffId',
+  payments: '++id, date, type, contactId, invoiceId, billId, bankAccountId, journalEntryId',
+  vatTariffs: '++id, name, rate, isDefault, isActive',
+  bankAccounts: '++id, &name, accountNumber, glAccountId, balance',
+  bankTransactions: '++id, bankAccountId, date, description, amount, status, matchedType, matchedId, journalEntryId',
+  settings: 'key, value',
+  attachments: '++id, entityType, entityId, createdAt'
+});
+
 // Indexes documentation:
 // accounts: code (unique), type
 // journalEntries: date, reference, [sourceType+sourceId]
@@ -25,3 +43,4 @@ db.version(3).stores({
 // invoices: number, contactId, status
 // bills: number, contactId, status
 // payments: date, type, invoiceId, billId
+// attachments: entityType ('journal'|'bill'|'invoice'|'payment'), entityId

@@ -2,18 +2,28 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useBills } from '../hooks/useBills';
 import { useAccounts } from '../hooks/useAccounts';
 import { useVat, calculateVat } from '../hooks/useVat';
-import { Plus, Truck, FileText, X, Save, Search } from 'lucide-react';
+import { Plus, Truck, FileText, X, Save, Search, Paperclip } from 'lucide-react';
 import { format, addDays, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import DateRangePicker from '../components/shared/DateRangePicker';
+import AttachmentSection from '../components/shared/AttachmentSection';
+import { db } from '../db/schema';
+import { useLiveQuery } from 'dexie-react-hooks';
 
 const Bills = () => {
   const { bills, vendors, addBill, addVendor, getLinesForBill } = useBills();
   const { accounts } = useAccounts();
   const { tariffs } = useVat();
   
+  // Attachment counts for list indicators
+  const attachmentCounts = useLiveQuery(async () => {
+    const all = await db.attachments.where('entityType').equals('bill').toArray();
+    return all.reduce((map, a) => { map[a.entityId] = (map[a.entityId] || 0) + 1; return map; }, {});
+  }) || {};
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isVendorModalOpen, setIsVendorModalOpen] = useState(false);
   const [isReadOnly, setIsReadOnly] = useState(false);
+  const [viewingBillId, setViewingBillId] = useState(null);
   
   // Filtering State
   const [filters, setFilters] = useState({
@@ -136,6 +146,7 @@ const Bills = () => {
 
   const handleOpenNewBill = () => {
     setIsReadOnly(false);
+    setViewingBillId(null);
     setFormData({
       number: '',
       contactId: '',
@@ -159,6 +170,7 @@ const Bills = () => {
       accountId: line.accountId?.toString() || '',
       vatTariffId: line.vatTariffId?.toString() || ''
     })));
+    setViewingBillId(bill.id);
     setIsReadOnly(true);
     setIsModalOpen(true);
   };
@@ -257,7 +269,14 @@ const Bills = () => {
                     onClick={() => handleViewBill(bill)}
                   >
                     <td style={{ padding: '16px' }}>{format(new Date(bill.date), 'dd/MM/yyyy')}</td>
-                    <td style={{ padding: '16px', fontWeight: 600 }}>{bill.number}</td>
+                    <td style={{ padding: '16px', fontWeight: 600 }}>
+                      {bill.number}
+                      {attachmentCounts[bill.id] > 0 && (
+                        <span title={`${attachmentCounts[bill.id]} attachment(s)`} style={{ marginLeft: '6px', color: 'var(--primary)', opacity: 0.7 }}>
+                          <Paperclip size={12} style={{ display: 'inline', verticalAlign: 'middle' }} />
+                        </span>
+                      )}
+                    </td>
                     <td style={{ padding: '16px' }}>
                       {vendors.find(v => v.id === bill.contactId)?.name || 'Unknown Vendor'}
                     </td>
@@ -374,6 +393,10 @@ const Bills = () => {
                 <button type="button" className="btn btn-outline" onClick={() => setIsModalOpen(false)}>{isReadOnly ? 'Close' : 'Cancel'}</button>
                 {!isReadOnly && <button type="submit" className="btn btn-primary"><Save size={20} /> Post Bill</button>}
               </div>
+
+              {isReadOnly && viewingBillId && (
+                <AttachmentSection entityType="bill" entityId={viewingBillId} readOnly={false} />
+              )}
             </form>
           </div>
         </div>
