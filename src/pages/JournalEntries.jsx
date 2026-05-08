@@ -40,7 +40,8 @@ const JournalEntries = () => {
 
   const handleLineChange = (index, field, value) => {
     const newLines = [...lines];
-    newLines[index][field] = value;
+    // accountId must be stored as an integer to match Dexie's auto-increment type
+    newLines[index][field] = field === 'accountId' ? (value ? parseInt(value, 10) : '') : value;
     
     // Clear opposite field if one is set
     if (field === 'debit' && value) newLines[index].credit = '';

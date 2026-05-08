@@ -27,6 +27,7 @@ export const useJournalEntries = () => {
       const linesWithId = lines.map(line => ({
         ...line,
         entryId,
+        accountId: parseInt(line.accountId),
         debit: parseFloat(line.debit) || 0,
         credit: parseFloat(line.credit) || 0,
         vatTariffId: line.vatTariffId ? parseInt(line.vatTariffId) : undefined
