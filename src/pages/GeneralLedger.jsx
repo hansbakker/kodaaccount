@@ -36,7 +36,22 @@ const GeneralLedger = () => {
     });
   }, [ledgerLines, filters, selectedAccountId]);
 
-  let runningBalance = 0;
+  // Calculate opening balance up to the start date for the selected account
+  const openingBalance = useMemo(() => {
+    if (!selectedAccountId || !ledgerLines) return 0;
+    
+    const acc = accounts.find(a => a.id === parseInt(selectedAccountId, 10));
+    const isAssetOrExpense = acc && ['asset', 'expense', 'cos'].includes(acc.type);
+
+    return (ledgerLines || [])
+      .filter(line => new Date(line.date) < filters.dateRange.start)
+      .reduce((sum, line) => {
+        const delta = (line.debit || 0) - (line.credit || 0);
+        return sum + (isAssetOrExpense ? delta : -delta);
+      }, 0);
+  }, [ledgerLines, filters.dateRange.start, selectedAccountId, accounts]);
+
+  let runningBalance = openingBalance;
 
   return (
     <div className="animate-fade-in">
@@ -125,42 +140,67 @@ const GeneralLedger = () => {
           <tbody>
             {loading ? (
               <tr><td colSpan={selectedAccountId ? 7 : 6} style={{ textAlign: 'center', padding: 'var(--space-8)' }}>Loading ledger...</td></tr>
-            ) : filteredLedger.length === 0 ? (
-              <tr><td colSpan={selectedAccountId ? 7 : 6} style={{ textAlign: 'center', padding: 'var(--space-8)' }} className="text-muted">No transactions match your filters.</td></tr>
             ) : (
-              filteredLedger.map((line, i) => {
-                runningBalance += (line.debit - line.credit);
-                return (
-                  <tr key={i} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                    <td style={{ padding: '16px', fontSize: '0.875rem' }}>{line.date ? format(new Date(line.date), 'dd/MM/yyyy') : ''}</td>
-                    <td style={{ padding: '16px', fontSize: '0.875rem' }}>{line.reference || '-'}</td>
+              <>
+                {selectedAccountId && (
+                  <tr style={{ backgroundColor: 'var(--bg-main)', borderBottom: '1px solid var(--border-color)', fontStyle: 'italic' }}>
+                    <td style={{ padding: '16px', fontSize: '0.875rem', opacity: 0.7 }}>{format(filters.dateRange.start, 'dd/MM/yyyy')}</td>
+                    <td style={{ padding: '16px', fontSize: '0.875rem', opacity: 0.7 }}>-</td>
                     <td style={{ padding: '16px' }}>
-                      {line.sourceType === 'bank_match' || line.sourceType === 'bank_direct' ? (
-                        <span className="badge badge-success" style={{ fontSize: '0.65rem', padding: '2px 6px', fontWeight: 700 }}>BANK</span>
-                      ) : line.sourceType === 'invoice' ? (
-                        <span className="badge" style={{ fontSize: '0.65rem', padding: '2px 6px', backgroundColor: 'var(--primary-light)', color: 'var(--primary-dark)', fontWeight: 700, border: '1px solid var(--primary-dark)' }}>A/R</span>
-                      ) : line.sourceType === 'bill' ? (
-                        <span className="badge" style={{ fontSize: '0.65rem', padding: '2px 6px', backgroundColor: '#fef3c7', color: '#92400e', fontWeight: 700, border: '1px solid #f59e0b' }}>A/P</span>
-                      ) : (
-                        <span className="badge badge-secondary" style={{ fontSize: '0.65rem', padding: '2px 6px', fontWeight: 700 }}>MANUAL</span>
-                      )}
+                      <span className="badge badge-secondary" style={{ fontSize: '0.65rem', padding: '2px 6px', fontWeight: 700 }}>OPENING</span>
                     </td>
-                    {!selectedAccountId && <td style={{ padding: '16px', fontSize: '0.875rem' }}>{line.accountCode}</td>}
-                    <td style={{ padding: '16px', fontSize: '0.875rem' }}>{line.description}</td>
-                    <td style={{ padding: '16px', textAlign: 'right', color: line.debit > 0 ? 'var(--success)' : 'inherit' }}>
-                      {line.debit > 0 ? line.debit.toFixed(2) : ''}
+                    <td style={{ padding: '16px', fontSize: '0.875rem', opacity: 0.7 }}>Opening Balance</td>
+                    <td style={{ padding: '16px', textAlign: 'right', opacity: 0.7 }}>-</td>
+                    <td style={{ padding: '16px', textAlign: 'right', opacity: 0.7 }}>-</td>
+                    <td style={{ padding: '16px', textAlign: 'right', fontWeight: 700 }}>
+                      {openingBalance.toFixed(2)}
                     </td>
-                    <td style={{ padding: '16px', textAlign: 'right', color: line.credit > 0 ? 'var(--danger)' : 'inherit' }}>
-                      {line.credit > 0 ? line.credit.toFixed(2) : ''}
-                    </td>
-                    {selectedAccountId && (
-                      <td style={{ padding: '16px', textAlign: 'right', fontWeight: 600 }}>
-                        {runningBalance.toFixed(2)}
-                      </td>
-                    )}
                   </tr>
-                );
-              })
+                )}
+
+                {filteredLedger.length === 0 ? (
+                  <tr><td colSpan={selectedAccountId ? 7 : 6} style={{ textAlign: 'center', padding: 'var(--space-8)' }} className="text-muted">No transactions match your filters.</td></tr>
+                ) : (
+                  filteredLedger.map((line, i) => {
+                    const acc = accounts.find(a => a.id === parseInt(selectedAccountId, 10));
+                    const isAssetOrExpense = acc ? ['asset', 'expense', 'cos'].includes(acc.type) : true;
+                    const delta = (line.debit || 0) - (line.credit || 0);
+                    
+                    runningBalance += selectedAccountId ? (isAssetOrExpense ? delta : -delta) : delta;
+
+                    return (
+                      <tr key={i} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                        <td style={{ padding: '16px', fontSize: '0.875rem' }}>{line.date ? format(new Date(line.date), 'dd/MM/yyyy') : ''}</td>
+                        <td style={{ padding: '16px', fontSize: '0.875rem' }}>{line.reference || '-'}</td>
+                        <td style={{ padding: '16px' }}>
+                          {line.sourceType === 'bank_match' || line.sourceType === 'bank_direct' ? (
+                            <span className="badge badge-success" style={{ fontSize: '0.65rem', padding: '2px 6px', fontWeight: 700 }}>BANK</span>
+                          ) : line.sourceType === 'invoice' ? (
+                            <span className="badge" style={{ fontSize: '0.65rem', padding: '2px 6px', backgroundColor: 'var(--primary-light)', color: 'var(--primary-dark)', fontWeight: 700, border: '1px solid var(--primary-dark)' }}>A/R</span>
+                          ) : line.sourceType === 'bill' ? (
+                            <span className="badge" style={{ fontSize: '0.65rem', padding: '2px 6px', backgroundColor: '#fef3c7', color: '#92400e', fontWeight: 700, border: '1px solid #f59e0b' }}>A/P</span>
+                          ) : (
+                            <span className="badge badge-secondary" style={{ fontSize: '0.65rem', padding: '2px 6px', fontWeight: 700 }}>MANUAL</span>
+                          )}
+                        </td>
+                        {!selectedAccountId && <td style={{ padding: '16px', fontSize: '0.875rem' }}>{line.accountCode}</td>}
+                        <td style={{ padding: '16px', fontSize: '0.875rem' }}>{line.description}</td>
+                        <td style={{ padding: '16px', textAlign: 'right', color: line.debit > 0 ? 'var(--success)' : 'inherit' }}>
+                          {line.debit > 0 ? line.debit.toFixed(2) : ''}
+                        </td>
+                        <td style={{ padding: '16px', textAlign: 'right', color: line.credit > 0 ? 'var(--danger)' : 'inherit' }}>
+                          {line.credit > 0 ? line.credit.toFixed(2) : ''}
+                        </td>
+                        {selectedAccountId && (
+                          <td style={{ padding: '16px', textAlign: 'right', fontWeight: 600 }}>
+                            {runningBalance.toFixed(2)}
+                          </td>
+                        )}
+                      </tr>
+                    );
+                  })
+                )}
+              </>
             )}
           </tbody>
         </table>

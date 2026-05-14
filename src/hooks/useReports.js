@@ -52,10 +52,11 @@ export const useReports = (dateRange = { start: startOfYear(new Date()), end: en
     // 3. VAT Report
     const vatTariffs = await db.vatTariffs.toArray();
     const vatReport = vatTariffs.map(t => {
-      // Net Sales (exclude the VAT line itself, only the revenue line)
+      // Net Sales (exclude the VAT line itself)
       const salesLines = filteredLines.filter(l => 
         l.vatTariffId === t.id && 
-        accounts.find(a => a.id === l.accountId)?.type === 'revenue'
+        ['revenue', 'cos', 'asset', 'liability', 'equity'].includes(accounts.find(a => a.id === l.accountId)?.type) &&
+        !accounts.find(a => a.id === l.accountId)?.subType?.includes('vat')
       );
       
       // Net Purchases (exclude the VAT line itself, only the expense/asset line)

@@ -45,11 +45,57 @@ export const useJournalEntries = () => {
     });
   };
 
+  const linkInvoiceOrBill = async (entryId, type, id) => {
+    return await db.transaction('rw', [db.journalEntries, db.invoices, db.bills], async () => {
+      await db.journalEntries.update(entryId, {
+        sourceType: type,
+        sourceId: parseInt(id, 10)
+      });
+      if (type === 'invoice') {
+        await db.invoices.update(parseInt(id, 10), {
+          journalEntryId: entryId,
+          status: 'paid'
+        });
+      } else if (type === 'bill') {
+        await db.bills.update(parseInt(id, 10), {
+          journalEntryId: entryId,
+          status: 'paid'
+        });
+      }
+    });
+  };
+
+  const unlinkInvoiceOrBill = async (entryId) => {
+    return await db.transaction('rw', [db.journalEntries, db.invoices, db.bills], async () => {
+      const entry = await db.journalEntries.get(entryId);
+      if (!entry) return;
+      
+      if (entry.sourceType === 'invoice' && entry.sourceId) {
+        await db.invoices.update(entry.sourceId, {
+          journalEntryId: null,
+          status: 'posted'
+        });
+      } else if (entry.sourceType === 'bill' && entry.sourceId) {
+        await db.bills.update(entry.sourceId, {
+          journalEntryId: null,
+          status: 'posted'
+        });
+      }
+
+      await db.journalEntries.update(entryId, {
+        sourceType: null,
+        sourceId: null
+      });
+    });
+  };
+
   return {
     entries: entries || [],
     getLinesForEntry,
     addJournalEntry,
     deleteJournalEntry,
+    linkInvoiceOrBill,
+    unlinkInvoiceOrBill,
     loading: entries === undefined
   };
 };

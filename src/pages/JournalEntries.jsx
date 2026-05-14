@@ -8,9 +8,14 @@ import AttachmentSection from '../components/shared/AttachmentSection';
 import { db } from '../db/schema';
 import { useLiveQuery } from 'dexie-react-hooks';
 
+import { useInvoices } from '../hooks/useInvoices';
+import { useBills } from '../hooks/useBills';
+
 const JournalEntries = () => {
-  const { entries, addJournalEntry, deleteJournalEntry, getLinesForEntry } = useJournalEntries();
+  const { entries, addJournalEntry, deleteJournalEntry, getLinesForEntry, linkInvoiceOrBill, unlinkInvoiceOrBill } = useJournalEntries();
   const { accounts } = useAccounts();
+  const { invoices } = useInvoices();
+  const { bills } = useBills();
   // Attachment counts for list indicators
   const attachmentCounts = useLiveQuery(async () => {
     const all = await db.attachments.where('entityType').equals('journal').toArray();
@@ -322,6 +327,63 @@ const JournalEntries = () => {
                 ))}
               </tbody>
             </table>
+
+            {/* Matching Section */}
+            <div style={{ marginTop: 'var(--space-6)', borderTop: '1px solid var(--border-color)', paddingTop: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
+              <h4 style={{ fontSize: '0.9rem', marginBottom: 'var(--space-2)' }}>Matched Invoice/Bill</h4>
+              {viewingEntry.sourceType && viewingEntry.sourceId ? (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--bg-main)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
+                  <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>
+                    {viewingEntry.sourceType.toUpperCase()}: {
+                      viewingEntry.sourceType === 'invoice'
+                        ? invoices.find(i => i.id === viewingEntry.sourceId)?.number || `#${viewingEntry.sourceId}`
+                        : bills.find(b => b.id === viewingEntry.sourceId)?.number || `#${viewingEntry.sourceId}`
+                    }
+                  </span>
+                  <button 
+                    type="button" 
+                    className="btn btn-outline" 
+                    style={{ padding: '4px 10px', fontSize: '0.78rem', color: 'var(--danger)', borderColor: 'var(--danger)' }}
+                    onClick={async () => {
+                      await unlinkInvoiceOrBill(viewingEntry.id);
+                      setViewingEntry({ ...viewingEntry, sourceType: null, sourceId: null });
+                    }}
+                  >
+                    Unlink / Unmatch
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '0 0 var(--space-2) 0' }}>Not linked to any Invoice or Bill.</p>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <select 
+                      className="input" 
+                      style={{ flex: 1, fontSize: '0.85rem' }} 
+                      defaultValue=""
+                      onChange={async (e) => {
+                        const val = e.target.value;
+                        if (!val) return;
+                        const [type, id] = val.split(':');
+                        await linkInvoiceOrBill(viewingEntry.id, type, id);
+                        setViewingEntry({ ...viewingEntry, sourceType: type, sourceId: parseInt(id, 10) });
+                      }}
+                    >
+                      <option value="">Match / Link with...</option>
+                      <optgroup label="Invoices">
+                        {invoices.filter(inv => inv.status !== 'paid').map(inv => (
+                          <option key={inv.id} value={`invoice:${inv.id}`}>{inv.number} - €{inv.total?.toFixed(2)}</option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="Bills">
+                        {bills.filter(b => b.status !== 'paid').map(b => (
+                          <option key={b.id} value={`bill:${b.id}`}>{b.number} - €{b.total?.toFixed(2)}</option>
+                        ))}
+                      </optgroup>
+                    </select>
+                  </div>
+                </div>
+              )}
+            </div>
 
             <AttachmentSection entityType="journal" entityId={viewingEntry.id} readOnly={false} />
           </div>
