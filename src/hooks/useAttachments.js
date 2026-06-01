@@ -5,15 +5,10 @@ export const useAttachments = (entityType, entityId) => {
   const attachments = useLiveQuery(
     () => entityId
       ? db.attachments
-          .where('[entityType+entityId]')
-          .equals([entityType, entityId])
+          .where('entityId')
+          .equals(entityId)
           .toArray()
-          .catch(() =>
-            // Fallback for browsers where compound index isn't available yet
-            db.attachments.toArray().then(all =>
-              all.filter(a => a.entityType === entityType && a.entityId === entityId)
-            )
-          )
+          .then(list => list.filter(a => a.entityType === entityType))
       : Promise.resolve([]),
     [entityType, entityId]
   );
