@@ -347,7 +347,7 @@ const Bills = () => {
                       <td>
                         <select className="input" value={line.accountId} onChange={e => handleLineChange(index, 'accountId', e.target.value)} disabled={isReadOnly}>
                           <option value="">Account...</option>
-                          {accounts.filter(a => a.type === 'expense' || a.type === 'asset').map(a => <option key={a.id} value={a.id}>{a.code} - {a.name}</option>)}
+                          {accounts.filter(a => ['expense', 'cos', 'asset', 'liability', 'equity', 'revenue'].includes(a.type)).map(a => <option key={a.id} value={a.id}>{a.code} - {a.name}</option>)}
                         </select>
                       </td>
                       <td>

@@ -59,10 +59,10 @@ export const useReports = (dateRange = { start: startOfYear(new Date()), end: en
         !accounts.find(a => a.id === l.accountId)?.subType?.includes('vat')
       );
       
-      // Net Purchases (exclude the VAT line itself, only the expense/asset line)
+      // Net Purchases (exclude the VAT line itself)
       const purchaseLines = filteredLines.filter(l => 
         l.vatTariffId === t.id && 
-        ['expense', 'asset', 'cos'].includes(accounts.find(a => a.id === l.accountId)?.type) &&
+        ['expense', 'cos', 'asset', 'liability', 'equity', 'revenue'].includes(accounts.find(a => a.id === l.accountId)?.type) &&
         !accounts.find(a => a.id === l.accountId)?.subType?.includes('vat') // Exclude VAT accounts
       );
       
